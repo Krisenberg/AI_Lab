@@ -1,14 +1,42 @@
 import math
-import datetime
+from datetime import datetime
+MAX_DATE = datetime.strptime('02.03.2023 23:59:59','%d.%m.%Y %H:%M:%S')
 
-def calculate_weight_time(graph, vertex_start, vertex_end):
-    node = graph[vertex_start][vertex_end]
-    return node.arrival_time - node.departure_time
+class Node:
+    def __init__(self, stop_name, line, dep_time):
+        self.stop_name = stop_name
+        self.line = line
+        self.departure_time = dep_time
+
+def calculate_weight_time(graph, vertex_start, vertex_end, time, prev_line):
+    connections = graph[vertex_start][vertex_end]
+    min_weight = MAX_DATE
+    best_connection = graph[vertex_start][vertex_end][0]
+    if vertex_start == 'Morwowa':
+        print('dupa')
+    if vertex_start == 'Morwowa' and vertex_end == 'Krynicka':
+        a = 10
+        print(a)
+    for conn in connections:
+        line = conn.line
+        condition_1 = (prev_line is not None and prev_line != line and conn.departure_time > time and conn.arrival_time < min_weight)
+        condition_2 = False
+        if not condition_1:
+            condition_2 = (prev_line is None or prev_line == line) and conn.departure_time >= time and conn.arrival_time < min_weight
+        if condition_1 or condition_2:
+            min_weight = conn.arrival_time
+            best_connection = conn
+        # if conn.departure_time >= time and conn.arrival_time < min_weight:
+        #     min_weight = conn.arrival_time
+        #     best_connection = conn
+    if best_connection.departure_time < time:
+        return None
+    return best_connection
 
 class Dijkstra:
     def find_vertex_min_dist(vertex_set: set, dist: list):
-        vertex = None
-        min_dist = datetime.datetime.strptime('23:59:59','%H:%M:%S')
+        vertex = next(iter(vertex_set))
+        min_dist = dist[vertex]
         for v in vertex_set:
             if dist[v] < min_dist:
                 min_dist = dist[v]
@@ -22,7 +50,7 @@ class Dijkstra:
         
         for v in graph:
             prev[v] = None
-            dist[v] = datetime.datetime.strptime('23:59:59','%H:%M:%S')
+            dist[v] = MAX_DATE
             q.add(v)
         
         dist[source] = time
@@ -30,36 +58,42 @@ class Dijkstra:
         while q:
             u = Dijkstra.find_vertex_min_dist(q, dist)
             if u == target:
-                return prev    
+                return prev, dist
             q.remove(u)
+            if prev[u]:
+                u_prev_line = prev[u].line
+            else:
+                u_prev_line = None
             for v in q:
-                for node in graph[u]:
-                    if v == node.stop_name:
-                        alt_dist = dist[u] + (node.arrival_time - node.departure_time)
-                        print(f'{v}, dist[v]={dist[v]}, alt_dist={alt_dist}')
-                        if alt_dist < dist[v]:
-                            dist[v] = alt_dist
-                            prev[v] = u
-        return prev
+                if v in graph[u]:
+                    alt_conn = calculate_weight_time(graph, u, v, dist[u], u_prev_line)
+                    if alt_conn and alt_conn.arrival_time < dist[v]:
+                        # print(f'{v}, dist[v]={dist[v]}, alt_dist={alt_conn.arrival_time}')
+                        dist[v] = alt_conn.arrival_time
+                        prev_node = Node(u, alt_conn.line, alt_conn.departure_time)
+                        prev[v] = prev_node                    
+        return prev, dist
     
     def solve(graph, source, target, cirteria, time):
         path = []
-        dijkstra_prev = Dijkstra.dijkstra(graph, source, target, cirteria, time)
+        dijkstra_prev, dijkstra_dist = Dijkstra.dijkstra(graph, source, target, cirteria, time)
         u = target
-        if dijkstra_prev[u] or u == source:
-            while u:
-                path.insert(0, u)
-                u = dijkstra_prev[u]
+        # if dijkstra_prev[u] or u == source:
+        while dijkstra_prev[u]:
+            path.insert(0, (dijkstra_prev[u], u, dijkstra_dist[u]))
+            u = dijkstra_prev[u].stop_name
         if not path:
             print(f'A path {source} -> {target} does not exist.')
             return
-        line = path[0]
-        print(f'IN: {line} [{path[0].departure_time}]; {source}')
+        line = path[0][0].line
+        print(f'IN: {line} [{path[0][0].departure_time}]; {path[0][0].stop_name}')
+        is_new_line = False
         for node in path:
-            if node == target:
-                print(f'OUT: {line} [{path[0].arrival_time}]; {node.stop_name}')
-            elif node.line != line:
-                print(f'OUT: {line} [{path[0].arrival_time}]; {node.stop_name}')
-                line = node.line
-                print(f'IN: {line} [{path[0].arrival_time}]; {node.stop_name}')
+            if is_new_line:
+                print(f'IN: {line} [{node[0].departure_time}]; {node[0].stop_name}')
+                is_new_line = False
+            elif node[0].line != line or node[1] == target:
+                is_new_line = True
+                print(f'OUT: {line} [{node[2]}]; {node[1]}')
+                line = node[0].line
         
