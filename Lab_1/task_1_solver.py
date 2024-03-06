@@ -1,22 +1,13 @@
 import math
 from datetime import datetime
+from classes import Node, Edge
+
 MAX_DATE = datetime.strptime('02.03.2023 23:59:59','%d.%m.%Y %H:%M:%S')
 
-class Node:
-    def __init__(self, stop_name, line, dep_time):
-        self.stop_name = stop_name
-        self.line = line
-        self.departure_time = dep_time
-
-def calculate_weight_time(graph, vertex_start, vertex_end, time, prev_line):
+def calculate_weight_time(graph: dict[str, dict[str, list[Edge]]], vertex_start, vertex_end, time, prev_line):
     connections = graph[vertex_start][vertex_end]
     min_weight = MAX_DATE
     best_connection = graph[vertex_start][vertex_end][0]
-    if vertex_start == 'Morwowa':
-        print('dupa')
-    if vertex_start == 'Morwowa' and vertex_end == 'Krynicka':
-        a = 10
-        print(a)
     for conn in connections:
         line = conn.line
         condition_1 = (prev_line is not None and prev_line != line and conn.departure_time > time and conn.arrival_time < min_weight)
