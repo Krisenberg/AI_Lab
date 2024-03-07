@@ -1,5 +1,5 @@
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from classes import Node, Edge
 
 MAX_DATE = datetime.strptime('02.03.2023 23:59:59','%d.%m.%Y %H:%M:%S')
@@ -10,7 +10,7 @@ def calculate_weight_time(graph: dict[str, dict[str, list[Edge]]], vertex_start,
     best_connection = graph[vertex_start][vertex_end][0]
     for conn in connections:
         line = conn.line
-        condition_1 = (prev_line is not None and prev_line != line and conn.departure_time > time and conn.arrival_time < min_weight)
+        condition_1 = (prev_line is not None and prev_line != line and (conn.departure_time - timedelta(minutes=5)) > time and conn.arrival_time < min_weight)
         condition_2 = False
         if not condition_1:
             condition_2 = (prev_line is None or prev_line == line) and conn.departure_time >= time and conn.arrival_time < min_weight
@@ -79,12 +79,20 @@ class Dijkstra:
         line = path[0][0].line
         print(f'IN: {line} [{path[0][0].departure_time}]; {path[0][0].stop_name}')
         is_new_line = False
-        for node in path:
-            if is_new_line:
-                print(f'IN: {line} [{node[0].departure_time}]; {node[0].stop_name}')
-                is_new_line = False
-            elif node[0].line != line or node[1] == target:
-                is_new_line = True
-                print(f'OUT: {line} [{node[2]}]; {node[1]}')
+        for i, node in enumerate(path):
+            if node[0].line != line:
+                print(f'OUT: {line} [{path[i-1][2]}]; {node[0].stop_name}')
+                print(f'IN: {node[0].line} [{node[0].departure_time}]; {node[0].stop_name}')
                 line = node[0].line
+            if node[1] == target:
+                print(f'OUT: {line} [{node[2]}]; {target}')
+
+            # if is_new_line:
+            #     print(f'IN: {line} [{node[0].departure_time}]; {node[0].stop_name}')
+            #     is_new_line = False
+            # elif node[0].line != line:
+            #     is_new_line = True
+            #     print(f'OUT: {line} [{node[0].departure_time}]; {node[0].stop_name}')
+            #     line = node[0].line
+            #     and node[1] != target:
         
