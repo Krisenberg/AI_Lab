@@ -10,9 +10,11 @@ def run_game(init_game_state_filename: str):
                 print(f'{cell}', end=' ')
             else:
                 print(f'{cell}')
-    valid_moves = game.generate_valid_moves((5,3))
-    for move in valid_moves:
-        print(move)
+    players_pawns = game.players_pawns()
+    for pawn in players_pawns:
+        print(f'POSSIBLE MOVES FOR PAWN AT: {pawn}')
+        valid_moves = game.generate_valid_moves(pawn)
+        print(valid_moves)
     # print(game.game_state)
 
 if __name__ == '__main__':
