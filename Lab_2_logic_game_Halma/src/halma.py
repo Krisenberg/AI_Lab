@@ -71,6 +71,39 @@ class Halma:
         step_moves = self.generate_step_moves(pawn_pos)
         jump_moves = self.generate_jump_moves(pawn_pos, tabu_pos=set())
         return step_moves + jump_moves
+
+    @staticmethod
+    def check_corner_for_win(game_state: list[list[int]], bottom_corner: bool):
+        corner_cells_offsets = {
+            0 : [0, 1, 2, 3, 4],
+            1 : [0, 1, 2, 3, 4],
+            2 : [0, 1, 2, 3],
+            3 : [0, 1, 2],
+            4 : [0, 1]
+        }
+        base_cell = (15,0) if bottom_corner else [0,15]
+        cell_mark = game_state[base_cell[0]][base_cell[1]]
+        for row_offset, col_offsets in corner_cells_offsets.items():
+            for col_offset in col_offsets:
+                if bottom_corner:
+                    nex_cell_i = base_cell[0] - row_offset
+                    nex_cell_j = base_cell[1] + col_offset
+                else:
+                    nex_cell_i = base_cell[0] + row_offset
+                    nex_cell_j = base_cell[1] - col_offset
+                if game_state[nex_cell_i][nex_cell_j] != cell_mark:
+                    return 0
+        return cell_mark
+
+    @staticmethod
+    def check_board_for_win(game_state: list[list[int]]):
+        bottom_corner_check = Halma.check_corner_for_win(game_state, True)
+        top_corner_check = Halma.check_corner_for_win(game_state, False)
+        if bottom_corner_check == 0 and top_corner_check == 0:
+            return 0
+        if bottom_corner_check != 0:
+            return bottom_corner_check
+        return top_corner_check
         
 
 # if __name__=='__main__':
