@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class Halma:
     game_state: list[list[int]]
     minmax_depth: int
-    player_turn: const.PlayerStrategy
+    maximizing_player: bool
     board_size: int = const.BOARD_SIZE
     turn_number: int = 1
 
@@ -21,8 +21,9 @@ class Halma:
 
 def players_pawns(
         game_state: list[list[int]],
-        player: int    
+        maximizing_player: bool    
     ):
+    player = 1 if maximizing_player else 2
     pawn_positions:list[tuple[int,int]] = []
     for i in range (len(game_state)):
         for j in range (len(game_state)):

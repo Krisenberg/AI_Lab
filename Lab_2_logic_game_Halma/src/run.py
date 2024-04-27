@@ -1,12 +1,12 @@
 import cli
 from halma import Halma, generate_valid_moves, check_board_for_win
 from constants import PlayerStrategy
-from minmax import minmax
+from minmax import minimax
 
 
 def run_game(init_game_state_filename: str):
     input_game_state = cli.input_game_state(init_game_state_filename)
-    game = Halma(input_game_state, 3, PlayerStrategy.MIN)
+    game = Halma(input_game_state, 2, True)
     for row in game.game_state:
         for index, cell in enumerate(row):
             if index < len(row) - 1:
@@ -23,10 +23,10 @@ def run_game(init_game_state_filename: str):
     # print(game.game_state)
     while (check_board_for_win(game.game_state) == 0):
         print(f'Turn number: {game.turn_number}')
-        print(f'Player: {game.player_turn.value} [{game.player_turn.name}]')
-        new_gamestate, eval = minmax(game)
+        print(f'Player: {1 if game.maximizing_player else 2}')
+        eval = minimax(game)
         print(f'Evaluation: {eval}, new game state:')
-        for row in new_gamestate:
+        for row in game.game_state:
             for index, cell in enumerate(row):
                 if index < len(row) - 1:
                     print(f'{cell}', end=' ')
