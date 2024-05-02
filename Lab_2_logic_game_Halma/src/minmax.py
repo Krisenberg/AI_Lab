@@ -1,9 +1,9 @@
 import copy
 from random import Random
 from dataclasses import dataclass
-from math import inf
+from math import inf, floor, sqrt
 from halma import Halma, check_board_for_win, players_pawns, generate_valid_moves
-from constants import PlayerStrategy
+from constants import PlayerStrategy, MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM
 
 
 # def minmax(game: Halma):
@@ -94,16 +94,31 @@ def reverse_move(game_state: list[list[int]], move: Move):
     game_state[from_row][from_col] = 0
     game_state[to_row][to_col] = players_mark
 
+def floor_euclidean_distance(pawn_pos: tuple[int,int], goal: tuple[int,int]):
+    return floor(sqrt((pawn_pos[0] - goal[0]) ** 2 + (pawn_pos[1] - goal[1]) ** 2))    
+
 def mockup_heuristic(game_state: list[list[int]], maximizing_player: bool) -> float:
     goal_cell = (0,15) if maximizing_player else (15,0)
+    goal_camp = MINIMIZING_PLAYER_CAMP if maximizing_player else MAXIMIZING_PLAYER_CAMP
     pawns = players_pawns(game_state, maximizing_player)
     dist_sum = 0
+    # pawns_outside_goal_camp = 0
     for pawn in pawns:
-        dist_sum += abs(pawn[0] - goal_cell[0]) + abs(pawn[1] - goal_cell[1])
+        dist_sum += floor_euclidean_distance(pawn, goal_cell)
+        # pawns_outside_goal_camp += 1 if pawn not in goal_camp else 0
+        # dist_sum += 0 if pawn in goal_camp else abs(pawn[0] - goal_cell[0]) + abs(pawn[1] - goal_cell[1])
     if maximizing_player:
-        return (1.0 - ((dist_sum - 60)/ 450)) * 100.0
+        dist_percentage = (1.0 - ((dist_sum - MIN_PAWN_DIST_SUM)/(MAX_PAWN_DIST_SUM - MIN_PAWN_DIST_SUM))) * 100.0
+        return dist_percentage
+        # return dist_percentage if dist_percentage < 75 else dist_percentage - (1.0 * pawns_outside_goal_camp)
     else:
-        return ((dist_sum - 60)/ 450) * 100.0
+        dist_percentage = ((dist_sum - MIN_PAWN_DIST_SUM)/(MAX_PAWN_DIST_SUM - MIN_PAWN_DIST_SUM)) * 100.0
+        # return dist_percentage if dist_percentage > 25 else dist_percentage + (1.0 * pawns_outside_goal_camp)
+        return dist_percentage
+
+def sort_children_on_distance(children: set[Move], maximizing_player: bool) -> list[Move]:
+    goal_cell = (0,15) if maximizing_player else (15,0)
+    return sorted(children, key=lambda move: abs(move.move_to[0] - goal_cell[0]) + abs(move.move_to[1] - goal_cell[1]))
     
 
 def minimax(game: Halma):
@@ -127,12 +142,12 @@ def minimax(game: Halma):
             for next_pos in next_valid_moves:
                 if current_pos != next_pos:
                     children.add(Move(move_from=current_pos, move_to=next_pos))
-        
+        children_sorted = sort_children_on_distance(children, maximizing_player)
         best_move = None
         best_evaluation = -inf if maximizing_player else inf
         prune_flag = False
         if maximizing_player:
-            for move in (move for move in children if not prune_flag):
+            for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval = minimax_rec(game_state, depth_left - 1, False, alpha, beta)
                 reverse_move(game_state, move)
@@ -143,7 +158,7 @@ def minimax(game: Halma):
                 if beta <= alpha:
                     prune_flag = True
         else:
-            for move in (move for move in children if not prune_flag):
+            for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval = minimax_rec(game_state, depth_left - 1, True, alpha, beta)
                 reverse_move(game_state, move)
