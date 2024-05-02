@@ -1,9 +1,9 @@
-import copy
 from random import Random
 from dataclasses import dataclass
-from math import inf, floor, sqrt
-from halma import Halma, check_board_for_win, players_pawns, generate_valid_moves
-from constants import PlayerStrategy, MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM
+from math import inf
+from halma import Halma, check_board_for_win, generate_valid_moves
+from utils import players_pawns, floor_euclidean_distance
+from constants import MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM
 
 
 # def minmax(game: Halma):
@@ -92,10 +92,7 @@ def reverse_move(game_state: list[list[int]], move: Move):
     to_row, to_col = move.move_from
     players_mark = game_state[from_row][from_col]
     game_state[from_row][from_col] = 0
-    game_state[to_row][to_col] = players_mark
-
-def floor_euclidean_distance(pawn_pos: tuple[int,int], goal: tuple[int,int]):
-    return floor(sqrt((pawn_pos[0] - goal[0]) ** 2 + (pawn_pos[1] - goal[1]) ** 2))    
+    game_state[to_row][to_col] = players_mark  
 
 def mockup_heuristic(game_state: list[list[int]], maximizing_player: bool) -> float:
     goal_cell = (0,15) if maximizing_player else (15,0)
@@ -125,14 +122,15 @@ def minimax(game: Halma):
 
     # random = Random()
 
-    def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool, alpha: float, beta: float):
+    def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool, alpha: float, beta: float, nodes_count: int):
         win_check = check_board_for_win(game_state)
         if win_check != 0:
             if maximizing_player:
-                return None, 100.0
-            return None, 0.0
+                return None, 100.0, nodes_count
+            return None, 0.0, nodes_count
         if depth_left == 0:
-            return None, mockup_heuristic(game_state, maximizing_player)
+            return None, game.max_player_strategy.evaluate_game_state(game_state) if maximizing_player else game.min_player_strategy.evaluate_game_state(game_state), nodes_count
+            # return None, mockup_heuristic(game_state, maximizing_player)
             # pass # return heuristic function value
 
         pawns = players_pawns(game_state, maximizing_player)
@@ -146,11 +144,14 @@ def minimax(game: Halma):
         best_move = None
         best_evaluation = -inf if maximizing_player else inf
         prune_flag = False
+        current_nodes_count = 0
         if maximizing_player:
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
-                _, eval = minimax_rec(game_state, depth_left - 1, False, alpha, beta)
+                _, eval, nodes = minimax_rec(game_state, depth_left - 1, False, alpha, beta, 0)
                 reverse_move(game_state, move)
+                current_nodes_count += 1
+                nodes_count += nodes
                 if eval > best_evaluation:
                     best_move = move
                     best_evaluation = eval
@@ -160,22 +161,20 @@ def minimax(game: Halma):
         else:
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
-                _, eval = minimax_rec(game_state, depth_left - 1, True, alpha, beta)
+                _, eval, nodes = minimax_rec(game_state, depth_left - 1, True, alpha, beta, 0)
                 reverse_move(game_state, move)
+                current_nodes_count += 1
+                nodes_count += nodes
                 if eval < best_evaluation:
                     best_move = move
                     best_evaluation = eval
                 beta = min(beta, eval)
                 if beta <= alpha:
                     prune_flag = True
+        nodes_count += current_nodes_count
+        return best_move, best_evaluation, nodes_count
 
-        return best_move, best_evaluation
-
-    best_move, best_eval = minimax_rec(game.game_state, game.minmax_depth, game.maximizing_player, -inf, inf)
-    make_move(game.game_state, best_move)
-    game.maximizing_player = not game.maximizing_player
-    game.turn_number += 1
-    return best_eval
+    return minimax_rec(game.game_state, game.minmax_depth, game.maximizing_player, -inf, inf, 0)
 
 # In order to optimze the minmax performance I use alpha-beta pruning combined with remembering 
     # ! TO-DO:

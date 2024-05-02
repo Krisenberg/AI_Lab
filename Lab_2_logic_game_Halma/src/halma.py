@@ -1,14 +1,21 @@
 import constants as const
 from dataclasses import dataclass
+from strategy import GameStrategy
 
-@dataclass
 class Halma:
-    game_state: list[list[int]]
-    minmax_depth: int
-    maximizing_player: bool
-    board_size: int = const.BOARD_SIZE
-    turn_number: int = 1
-
+    def __init__(self, game_state, max_depth, max_player_strategy, min_player_strategy):
+        self.game_state: list[list[int]] = game_state
+        self.minmax_depth: int = max_depth
+        self.max_player_strategy: GameStrategy = max_player_strategy
+        self.min_player_strategy: GameStrategy = min_player_strategy
+        self.maximizing_player: bool = True
+        self.board_size: int = const.BOARD_SIZE
+        self.turn_number: int = 1
+        self.move_number: int = 1
+        self.max_player_visited_nodes: dict[int,int] = {}
+        self.min_player_visited_nodes: dict[int,int] = {}
+        self.max_player_move_time: dict[int,int] = {}
+        self.min_player_move_time: dict[int,int] = {}
 
 
     # def __init__(self, game_state: list[list[int]], minmax_depth: int, player_who_starts: int = 1):
@@ -17,19 +24,6 @@ class Halma:
     #     self.player_turn = player_who_starts
     #     self.board_size = const.BOARD_SIZE
     #     self.turn_number = 1
-
-
-def players_pawns(
-        game_state: list[list[int]],
-        maximizing_player: bool    
-    ):
-    player = 1 if maximizing_player else 2
-    pawn_positions:list[tuple[int,int]] = []
-    for i in range (len(game_state)):
-        for j in range (len(game_state)):
-            if game_state[i][j]==player:
-                pawn_positions.append((i,j))
-    return pawn_positions
 
 
 def generate_step_moves(

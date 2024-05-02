@@ -1,6 +1,4 @@
-import cli
-from halma import players_pawns
-from minmax import floor_euclidean_distance
+from utils import players_pawns, floor_euclidean_distance, input_game_state
 from abc import ABC, abstractmethod
 from enum import Enum
 from constants import MAXIMIZING_PLAYER_MARK, MINIMIZING_PLAYER_MARK
@@ -20,17 +18,9 @@ class EarlyGameFormObstacle(Strategy):
 
     def __init__(self, maximizing_player: bool):
         self.max_turn_switch = 5
-        obstacle_cells_min_player = {
-            (4,10),
-            (3,11), (4,11), (5,11),
-            (3,12), (4,12)
-        }
+        obstacle_cells_min_player = { (4,10), (5,10), (3,11), (4,11), (5,11), (4,12) }
+        obstacle_cells_max_player = { (11,3), (10,4), (11,4), (12,4), (10,5), (11,5) }
 
-        obstacle_cells_max_player = {
-            (11,5),
-            (10,4), (11,4), (12,4),
-            (11,3), (12,3)
-        }
         self.obstacle_cells = obstacle_cells_max_player if maximizing_player else obstacle_cells_min_player
         self.max_player = maximizing_player
     
@@ -116,7 +106,7 @@ def calc_dist(pawn, goal):
     return abs(pawn[0] - goal[0]) + abs(pawn[1] - goal[1])
 
 if __name__ == '__main__':
-    input_game_state = cli.input_game_state('initial_state.txt')
+    input_game_state = input_game_state('initial_state.txt')
     pawns = players_pawns(input_game_state, True)
     max_sum_max = 0
     max_sum_min = 0

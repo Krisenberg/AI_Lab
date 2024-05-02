@@ -2,7 +2,7 @@ import os
 # from enum import Enum
 
 # TEST_CASE_DIR = os.path.join(os.pardir, 'Test_cases')
-TEST_CASE_DIR = os.path.join(os.curdir, 'Test_cases')
+TEST_CASE_DIR = os.path.join(os.pardir, 'Test_cases')
 BOARD_SIZE = 16
 MAX_PAWN_DIST_SUM = 352
 MIN_PAWN_DIST_SUM = 47
