@@ -1,8 +1,7 @@
 from random import Random
-from dataclasses import dataclass
 from math import inf
 from halma import Halma, check_board_for_win, generate_valid_moves
-from utils import players_pawns, floor_euclidean_distance
+from utils import players_pawns, floor_euclidean_distance, Move
 from constants import MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM
 
 
@@ -65,21 +64,6 @@ from constants import MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_D
 #     game.turn_number += 1
 #     return best_game_state, best_eval
 
-@dataclass(frozen=True)
-class Move:
-    """Dataclass representing the move
-
-    ----------
-    Attributes
-    ----------
-        - move_from - tuple representing current position of the pawn
-        - move_to - tuple representing the next position of the pawn
-
-        In both cases: tuple[0] is the index of the row, tuple[1] represents the column's index
-    """
-    move_from: tuple[int, int]
-    move_to: tuple[int,int]
-
 def make_move(game_state: list[list[int]], move: Move):
     from_row, from_col = move.move_from
     to_row, to_col = move.move_to
@@ -113,9 +97,9 @@ def mockup_heuristic(game_state: list[list[int]], maximizing_player: bool) -> fl
         # return dist_percentage if dist_percentage > 25 else dist_percentage + (1.0 * pawns_outside_goal_camp)
         return dist_percentage
 
-def sort_children_on_distance(children: set[Move], maximizing_player: bool) -> list[Move]:
-    goal_cell = (0,15) if maximizing_player else (15,0)
-    return sorted(children, key=lambda move: abs(move.move_to[0] - goal_cell[0]) + abs(move.move_to[1] - goal_cell[1]))
+# def sort_children_on_distance(children: set[Move], maximizing_player: bool) -> list[Move]:
+#     goal_cell = (0,15) if maximizing_player else (15,0)
+#     return sorted(children, key=lambda move: abs(move.move_to[0] - goal_cell[0]) + abs(move.move_to[1] - goal_cell[1]))
     
 
 def minimax(game: Halma):
@@ -130,6 +114,12 @@ def minimax(game: Halma):
             return None, 0.0, nodes_count
         if depth_left == 0:
             return None, game.max_player_strategy.evaluate_game_state(game_state) if maximizing_player else game.min_player_strategy.evaluate_game_state(game_state), nodes_count
+        
+        turn_number = game.turn_number + (game.minmax_depth - depth_left)
+        if maximizing_player and game.max_player_strategy.switch_strategy_check(game_state, turn_number):
+            return None, game.max_player_strategy.evaluate_game_state(game_state), nodes_count
+        if not maximizing_player and game.min_player_strategy.switch_strategy_check(game_state, turn_number):
+            return None, game.min_player_strategy.evaluate_game_state(game_state), nodes_count
             # return None, mockup_heuristic(game_state, maximizing_player)
             # pass # return heuristic function value
 
@@ -140,12 +130,14 @@ def minimax(game: Halma):
             for next_pos in next_valid_moves:
                 if current_pos != next_pos:
                     children.add(Move(move_from=current_pos, move_to=next_pos))
-        children_sorted = sort_children_on_distance(children, maximizing_player)
+        # children_sorted = sort_children_on_distance(children, maximizing_player)
         best_move = None
         best_evaluation = -inf if maximizing_player else inf
         prune_flag = False
         current_nodes_count = 0
         if maximizing_player:
+            # children_sorted = game.max_player_strategy.prepare_nodes_order(children)
+            children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, False, alpha, beta, 0)
@@ -159,6 +151,8 @@ def minimax(game: Halma):
                 if beta <= alpha:
                     prune_flag = True
         else:
+            # children_sorted = game.min_player_strategy.prepare_nodes_order(children)
+            children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, True, alpha, beta, 0)

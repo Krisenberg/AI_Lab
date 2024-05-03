@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 from math import floor, sqrt
 import constants as const
@@ -35,6 +36,21 @@ def floor_euclidean_distance(pawn_pos: tuple[int,int], goal: tuple[int,int]):
     return floor(sqrt((pawn_pos[0] - goal[0]) ** 2 + (pawn_pos[1] - goal[1]) ** 2))  
     # for row in game_state:
     #     print(row)
+
+@dataclass(frozen=True)
+class Move:
+    """Dataclass representing the move
+
+    ----------
+    Attributes
+    ----------
+        - move_from - tuple representing current position of the pawn
+        - move_to - tuple representing the next position of the pawn
+
+        In both cases: tuple[0] is the index of the row, tuple[1] represents the column's index
+    """
+    move_from: tuple[int, int]
+    move_to: tuple[int,int]
 
 # if __name__ == '__main__':
 #     input_game_state('initial_state.txt')
