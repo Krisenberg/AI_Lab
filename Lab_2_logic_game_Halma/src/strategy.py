@@ -15,7 +15,7 @@ class Strategy(ABC):
         pass
 
     @abstractmethod
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
         pass
 
 class EarlyGameFormObstacle(Strategy):
@@ -23,10 +23,7 @@ class EarlyGameFormObstacle(Strategy):
     def __init__(self, maximizing_player: bool):
         self.max_turn_switch = const.EARLY_GAME_TURN_LIMIT
         self.penalty_square_size = const.EARLY_GAME_FORM_OBSTACLE_PENALTY_SQUARE_SIZE
-        obstacle_cells_min_player = { (4,10), (5,10), (3,11), (4,11), (5,11), (4,12) }
-        obstacle_cells_max_player = { (11,3), (10,4), (11,4), (12,4), (10,5), (11,5) }
-
-        self.obstacle_cells = obstacle_cells_max_player if maximizing_player else obstacle_cells_min_player
+        self.obstacle_cells = const.OBSTACLE_CELLS_MAX_PLAYER if maximizing_player else const.OBSTACLE_CELLS_MIN_PLAYER
         self.max_player = maximizing_player
     
     def evaluate(self, game_state: list[list[int]]) -> float:
@@ -41,14 +38,16 @@ class EarlyGameFormObstacle(Strategy):
             for cell in self.obstacle_cells:
                 if game_state[cell[0]][cell[1]] == const.MAXIMIZING_PLAYER_MARK:
                     pawns_in_obstacle_area += 1
-            return (1.0 - ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells)))) * 100.0
+            return (-1) * (len(self.obstacle_cells) - 1 + (2 * penalty_square_pawns) - pawns_in_obstacle_area)
+            # return (1.0 - ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells)))) * 100.0
         for pawn in pawns:
             if pawn[0] < (base_corner[0] + self.penalty_square_size) and pawn[1] > (base_corner[1] - self.penalty_square_size):
                 penalty_square_pawns += 1
         for cell in self.obstacle_cells:
             if game_state[cell[0]][cell[1]] == const.MINIMIZING_PLAYER_MARK:
                 pawns_in_obstacle_area += 1
-        return ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells))) * 100.0
+        return (len(self.obstacle_cells) + 1 + (2 * penalty_square_pawns) - pawns_in_obstacle_area)
+        # return ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells))) * 100.0
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
@@ -59,31 +58,42 @@ class EarlyGameFormObstacle(Strategy):
                 return False
         return True
     
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
         base_corner = (15,0) if self.max_player else (0,15)
         if self.max_player:
             return sorted(children, key=lambda move: 
                 -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
-                    -1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
-                        and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
-                        1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
-                            and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
-                            2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
+                    2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else (
+                        -1 if (move.move_from[0] <= (base_corner[0] - self.penalty_square_size) or move.move_from[1] >= (base_corner[1] + self.penalty_square_size))
+                            and (move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size)) else (
+                                1 if (move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size))
+                                    and (move.move_to[0] <= (base_corner[0] - self.penalty_square_size) or move.move_to[1] >= (base_corner[1] + self.penalty_square_size)) else 0
+                            )
                         )
-                    )
-                ), reverse=True
-            )
+                    ), reverse=True)
+        
         return sorted(children, key=lambda move: 
             -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
-                -1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
-                    and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
-                    1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
-                        and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
-                        2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
+                2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else (
+                    -1 if (move.move_from[0] > (base_corner[0] + self.penalty_square_size) or move.move_from[1] < (base_corner[1] - self.penalty_square_size))
+                        and (move.move_to[0] <= (base_corner[0] + self.penalty_square_size) and move.move_to[1] >= (base_corner[1] - self.penalty_square_size)) else (
+                            1 if (move.move_from[0] <= (base_corner[0] + self.penalty_square_size) and move.move_from[1] >= (base_corner[1] - self.penalty_square_size))
+                                and (move.move_to[0] > (base_corner[0] + self.penalty_square_size) or move.move_to[1] < (base_corner[1] - self.penalty_square_size)) else 0
+                        )
                     )
-                )
-            ), reverse=True
-        )
+                ), reverse=True)
+        
+        # return sorted(children, key=lambda move: 
+        #     -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
+        #         -1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
+        #             and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
+        #             1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
+        #                 and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
+        #                 2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
+        #             )
+        #         )
+        #     ), reverse=True
+        # )
 
 class EarlyGameConquerCenter(Strategy):
 
@@ -109,7 +119,7 @@ class EarlyGameConquerCenter(Strategy):
                 return False
         return True
     
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
         return sorted(children, key=lambda move: floor_euclidean_distance(move.move_to, self.target_cell), reverse=True)
 
 class MiddleGameMoveDiagonal(Strategy):
@@ -146,7 +156,7 @@ class MiddleGameMoveDiagonal(Strategy):
                 return False
         return True
     
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
         return sorted(children, key=lambda move: self._calculate_distance(move.move_to) - self._calculate_distance(move.move_from))
                       
 # class EarlyGameFormObstacle(Strategy):
@@ -219,98 +229,110 @@ class MiddleGameMoveDiagonal(Strategy):
 class EndGameFillFromEnd(Strategy):
 
     def __init__(self, maximizing_player: bool):
-        self.goal_cells_weights = const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MAX_PLAYER if maximizing_player else const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MIN_PLAYER
+        # self.goal_cells_weights = const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MAX_PLAYER if maximizing_player else const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MIN_PLAYER
+        self.cell_weights_max = const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MAX_PLAYER
+        self.cell_weights_min = const.END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MIN_PLAYER
         self.max_player = maximizing_player
-        self.target_cell = (0,15) if maximizing_player else (15,0)
+        # self.target_cell = (0,15) if maximizing_player else (15,0)
 
-    def _calculate_distance(self, pawn: tuple[int,int]) -> float:
-        if pawn in self.goal_cells_weights:
-            dist = self.goal_cells_weights[pawn]
-        else:
-            dist = (2.0 * floor_euclidean_distance(pawn, self.target_cell) + 4)
-        return dist
+    def _calculate_distance(self, pawn: tuple[int,int], max_player: bool) -> float:
+        cell_weights = self.cell_weights_max if max_player else self.cell_weights_min
+        target_cell = (0,15) if max_player else (15,0)
+        # if pawn in cell_weights:
+        #     dist = self.goal_cells_weights[pawn]
+        # else:
+        #     dist = floor_euclidean_distance(pawn, self.target_cell) + 4
+        return cell_weights[pawn] if pawn in cell_weights else (floor_euclidean_distance(pawn, target_cell) + 4)
     
     def evaluate(self, game_state: list[list[int]]) -> float:
-        pawns = players_pawns(game_state, self.max_player)
+        pawns_max = players_pawns(game_state, True)
+        pawns_min = players_pawns(game_state, False)
 
-        dist_sum = 0
-        for pawn in pawns:
-            dist = self._calculate_distance(pawn)
-            dist_sum += (-1.0) * dist if self.max_player else dist
-        return dist_sum
+        dist_sum_max = 0
+        dist_sum_min = 0
+        for pawn in pawns_max:
+            # dist = self._calculate_distance(pawn, True)
+            dist_sum_max += self._calculate_distance(pawn, True)
+        for pawn in pawns_min:
+            dist_sum_min += self._calculate_distance(pawn, False)
+        if self.max_player:
+            return dist_sum_min - dist_sum_max
+        return - dist_sum_max + dist_sum_min
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         return False
     
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
-        return sorted(children, key=lambda move: self._calculate_distance(move.move_to) - self._calculate_distance(move.move_from))
+    def estimate_move_value(self, move: Move, max_player: bool) -> float:
+        target_cell = (0,15) if max_player else (15,0)
+        cell_weights = self.cell_weights_max if max_player else self.cell_weights_min
+        distance_delta = floor_euclidean_distance(move.move_to, target_cell) - floor_euclidean_distance(move.move_from, target_cell)
+        pawn_in_base_bonus = cell_weights[move.move_to] if move.move_to in cell_weights else 0
+        return distance_delta - pawn_in_base_bonus
     
-# class EarlyGameFormObstacle(Strategy):
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+        return sorted(children, key=lambda move: self.estimate_move_value(move, max_player))
+        # return sorted(children, key=lambda move: self._calculate_distance(move.move_to,) - self._calculate_distance(move.move_from))
+    
+class EndGameFillEveryOther(Strategy):
 
-#     def __init__(self, maximizing_player: bool):
-#         self.max_turn_switch = const.EARLY_GAME_FORM_OBSTACLE_MAX_TURN
-#         self.penalty_square_size = const.EARLY_GAME_FORM_OBSTACLE_PENALTY_SQUARE_SIZE
-#         obstacle_cells_min_player = { (4,10), (5,10), (3,11), (4,11), (5,11), (4,12) }
-#         obstacle_cells_max_player = { (11,3), (10,4), (11,4), (12,4), (10,5), (11,5) }
+    def __init__(self, maximizing_player: bool):
+        self.cell_weights_max = const.END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MAX_PLAYER
+        self.cell_weights_min = const.END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MIN_PLAYER
+        # self.goal_cells_weights = const.END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MAX_PLAYER if maximizing_player else const.END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MIN_PLAYER
+        self.max_player = maximizing_player
+        # self.target_cell = (0,15) if maximizing_player else (15,0)
 
-#         self.obstacle_cells = obstacle_cells_max_player if maximizing_player else obstacle_cells_min_player
-#         self.max_player = maximizing_player
+    def _calculate_distance(self, pawn: tuple[int,int], max_player: bool) -> float:
+        cell_weights = self.cell_weights_max if max_player else self.cell_weights_min
+        target_cell = (0,15) if max_player else (15,0)
+        return cell_weights[pawn] if pawn in cell_weights else (floor_euclidean_distance(pawn, target_cell) + 4)
     
-#     def evaluate(self, game_state: list[list[int]]) -> float:
-#         pawns = players_pawns(game_state, self.max_player)
-#         base_corner = (15,0) if self.max_player else (0,15)
-#         penalty_square_pawns = 0
-#         pawns_in_obstacle_area = 0
-#         if self.max_player:
-#             for pawn in pawns:
-#                 if pawn[0] > (base_corner[0] - self.penalty_square_size) and pawn[1] < (base_corner[1] + self.penalty_square_size):
-#                     penalty_square_pawns += 1
-#             for cell in self.obstacle_cells:
-#                 if game_state[cell[0]][cell[1]] == const.MAXIMIZING_PLAYER_MARK:
-#                     pawns_in_obstacle_area += 1
-#             return (1.0 - ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells)))) * 100.0
-#         for pawn in pawns:
-#             if pawn[0] < (base_corner[0] + self.penalty_square_size) and pawn[1] > (base_corner[1] - self.penalty_square_size):
-#                 penalty_square_pawns += 1
-#         for cell in self.obstacle_cells:
-#             if game_state[cell[0]][cell[1]] == const.MINIMIZING_PLAYER_MARK:
-#                 pawns_in_obstacle_area += 1
-#         return ((penalty_square_pawns + (len(self.obstacle_cells) - pawns_in_obstacle_area))/(self.penalty_square_size**2 + len(self.obstacle_cells))) * 100.0
+    def evaluate(self, game_state: list[list[int]]) -> float:
+        pawns_max = players_pawns(game_state, True)
+        pawns_min = players_pawns(game_state, False)
+
+        dist_sum_max = 0
+        dist_sum_min = 0
+        for pawn in pawns_max:
+            # dist = self._calculate_distance(pawn, True)
+            dist_sum_max += self._calculate_distance(pawn, True)
+        for pawn in pawns_min:
+            dist_sum_min += self._calculate_distance(pawn, False)
+        if self.max_player:
+            return dist_sum_min - dist_sum_max
+        return - dist_sum_max + dist_sum_min
+
+    # def _calculate_distance(self, pawn: tuple[int,int]) -> float:
+    #     if pawn in self.goal_cells_weights:
+    #         dist = self.goal_cells_weights[pawn]
+    #     else:
+    #         dist = floor_euclidean_distance(pawn, self.target_cell) + 4
+    #     return dist
     
-#     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
-#         if turn_number == self.max_turn_switch:
-#             return True
-#         players_mark = const.MAXIMIZING_PLAYER_MARK if self.max_player else const.MINIMIZING_PLAYER_MARK
-#         for cell in self.obstacle_cells:
-#             if game_state[cell[0]][cell[1]] != players_mark:
-#                 return False
-#         return True
+    # def evaluate(self, game_state: list[list[int]]) -> float:
+    #     pawns = players_pawns(game_state, self.max_player)
+
+    #     dist_sum = 0
+    #     for pawn in pawns:
+    #         dist = self._calculate_distance(pawn)
+    #         dist_sum += (-1.0) * dist if self.max_player else dist
+    #     return dist_sum
     
-#     def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
-#         base_corner = (15,0) if self.max_player else (0,15)
-#         if self.max_player:
-#             return sorted(children, key=lambda move: 
-#                 -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
-#                     -1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
-#                         and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
-#                         1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
-#                             and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
-#                             2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
-#                         )
-#                     )
-#                 ), reverse=True
-#             )
-#         return sorted(children, key=lambda move: 
-#             -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
-#                 -1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
-#                     and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
-#                     1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
-#                         and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
-#                         2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
-#                     )
-#                 )
-#             ), reverse=True
-#         )
+    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+        return False
+    
+    def estimate_move_value(self, move: Move, max_player: bool) -> float:
+        target_cell = (0,15) if max_player else (15,0)
+        cell_weights = self.cell_weights_max if max_player else self.cell_weights_min
+        distance_delta = floor_euclidean_distance(move.move_to, target_cell) - floor_euclidean_distance(move.move_from, target_cell)
+        pawn_in_base_bonus = cell_weights[move.move_to] if move.move_to in cell_weights else 0
+        return distance_delta - pawn_in_base_bonus
+    
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+        return sorted(children, key=lambda move: self.estimate_move_value(move, max_player))
+    
+    # def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    #     return sorted(children, key=lambda move: self._calculate_distance(move.move_to) - self._calculate_distance(move.move_from))
         
         
 
@@ -339,7 +361,8 @@ class GameStrategy:
         PlayerStrategy.EARLY_GAME_FORM_OBSTACLE : EarlyGameFormObstacle,
         PlayerStrategy.EARLY_GAME_CONQUER_CENTER : EarlyGameConquerCenter,
         PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL : MiddleGameMoveDiagonal,
-        PlayerStrategy.END_GAME_FILL_FROM_END : EndGameFillFromEnd
+        PlayerStrategy.END_GAME_FILL_FROM_END : EndGameFillFromEnd,
+        PlayerStrategy.END_GAME_FILL_EVERY_OTHER : EndGameFillEveryOther
     }
 
     def __init__(self, maximizing_player: bool, early_strategy: PlayerStrategy, mid_strategy: PlayerStrategy, end_strategy: PlayerStrategy):
@@ -351,7 +374,9 @@ class GameStrategy:
             self.map_strategy_name_to_class[mid_strategy](maximizing_player),
             self.map_strategy_name_to_class[end_strategy](maximizing_player)
         ]
+        self.maximizing_player = maximizing_player
         self.current_strategy = 0
+        self.tabu_set_from = set()
     
     def evaluate_game_state(self, game_state: list[list[int]]) -> float:
         return self.strategies[self.current_strategy].evaluate(game_state)
@@ -360,13 +385,21 @@ class GameStrategy:
         return self.strategies[self.current_strategy].switch_strategy_check(game_state, turn_number)
     
     def switch_strategy(self) -> None:
+        if isinstance(self.strategies[self.current_strategy], EarlyGameFormObstacle):
+            self.tabu_set_from = const.OBSTACLE_CELLS_MAX_PLAYER if self.maximizing_player else const.OBSTACLE_CELLS_MIN_PLAYER
         self.current_strategy = 1 if self.current_strategy == 0 else 2
+        if self.current_strategy == 2:
+            self.tabu_set_from = set()
 
-    def prepare_nodes_order(self, children: set[Move]) -> list[Move]:
-        return self.strategies[self.current_strategy].prepare_nodes_order(children)
+    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+        valid_moves = {move for move in children if move.move_from not in self.tabu_set_from}
+        return self.strategies[self.current_strategy].prepare_nodes_order(valid_moves, max_player)
 
-def calc_dist(pawn, goal):
-    return abs(pawn[0] - goal[0]) + abs(pawn[1] - goal[1])
+    def is_currently_end_game_strategy(self) -> bool:
+        return self.current_strategy == 2
+
+# def calc_dist(pawn, goal):
+#     return abs(pawn[0] - goal[0]) + abs(pawn[1] - goal[1])
 
 if __name__ == '__main__':
     input_game_state = input_game_state('initial_state.txt')

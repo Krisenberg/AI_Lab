@@ -1,5 +1,6 @@
 from random import Random
 from math import inf
+from typing import Callable
 from halma import Halma, check_board_for_win, generate_valid_moves
 from utils import players_pawns, floor_euclidean_distance, Move
 from constants import MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM
@@ -105,23 +106,28 @@ def mockup_heuristic(game_state: list[list[int]], maximizing_player: bool) -> fl
 def minimax(game: Halma):
 
     # random = Random()
+    # evaluate_function = game.max_player_strategy.evaluate_game_state if game.maximizing_player else game.min_player_strategy.evaluate_game_state
+    # switch_strategy_check_function = game.max_player_strategy.switch_strategy_check if game.maximizing_player else game.min_player_strategy.switch_strategy_check
+    # prepare_nodes_function = game.max_player_strategy.prepare_nodes_order if game.maximizing_player else game.min_player_strategy.prepare_nodes_order
+    game_strategy = game.max_player_strategy if game.maximizing_player else game.min_player_strategy
 
     def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool, alpha: float, beta: float, nodes_count: int):
         win_check = check_board_for_win(game_state)
         if win_check != 0:
-            if maximizing_player:
-                return None, 100.0, nodes_count
-            return None, 0.0, nodes_count
+            if win_check == 1:
+                return None, inf, nodes_count
+            return None, -inf, nodes_count
         if depth_left == 0:
-            return None, game.max_player_strategy.evaluate_game_state(game_state) if maximizing_player else game.min_player_strategy.evaluate_game_state(game_state), nodes_count
+            return None, game_strategy.evaluate_game_state(game_state), nodes_count
+            # return None, game.max_player_strategy.evaluate_game_state(game_state) if maximizing_player else game.min_player_strategy.evaluate_game_state(game_state), nodes_count
         
         turn_number = game.turn_number + (game.minmax_depth - depth_left)
-        if maximizing_player and game.max_player_strategy.switch_strategy_check(game_state, turn_number):
-            return None, game.max_player_strategy.evaluate_game_state(game_state), nodes_count
-        if not maximizing_player and game.min_player_strategy.switch_strategy_check(game_state, turn_number):
-            return None, game.min_player_strategy.evaluate_game_state(game_state), nodes_count
-            # return None, mockup_heuristic(game_state, maximizing_player)
-            # pass # return heuristic function value
+        if game_strategy.switch_strategy_check(game_state, turn_number):
+            return None, game_strategy.evaluate_game_state(game_state), nodes_count
+        # if maximizing_player and game.max_player_strategy.switch_strategy_check(game_state, turn_number):
+        #     return None, game.max_player_strategy.evaluate_game_state(game_state), nodes_count
+        # if not maximizing_player and game.min_player_strategy.switch_strategy_check(game_state, turn_number):
+        #     return None, game.min_player_strategy.evaluate_game_state(game_state), nodes_count
 
         pawns = players_pawns(game_state, maximizing_player)
         children = set()
@@ -136,30 +142,32 @@ def minimax(game: Halma):
         prune_flag = False
         current_nodes_count = 0
         if maximizing_player:
-            # children_sorted = game.max_player_strategy.prepare_nodes_order(children)
-            children_sorted = list(children)
+            children_sorted = game_strategy.prepare_nodes_order(children, True)
+            # children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, False, alpha, beta, 0)
                 reverse_move(game_state, move)
                 current_nodes_count += 1
                 nodes_count += nodes
-                if eval > best_evaluation:
+                if best_move is None or eval > best_evaluation:
                     best_move = move
                     best_evaluation = eval
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     prune_flag = True
         else:
-            # children_sorted = game.min_player_strategy.prepare_nodes_order(children)
-            children_sorted = list(children)
+            children_sorted = game_strategy.prepare_nodes_order(children, False)
+            # children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
+                if (move.move_from == (13,4) and move.move_to == (14,4)):
+                    pass
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, True, alpha, beta, 0)
                 reverse_move(game_state, move)
                 current_nodes_count += 1
                 nodes_count += nodes
-                if eval < best_evaluation:
+                if best_move is None or eval < best_evaluation:
                     best_move = move
                     best_evaluation = eval
                 beta = min(beta, eval)

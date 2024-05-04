@@ -2,7 +2,7 @@ import os
 # from enum import Enum
 
 # TEST_CASE_DIR = os.path.join(os.pardir, 'Test_cases')
-TEST_CASE_DIR = os.path.join(os.pardir, 'Test_cases')
+TEST_CASE_DIR = os.path.join(os.curdir, 'Test_cases')
 BOARD_SIZE = 16
 MAX_PAWN_DIST_SUM = 352
 MIN_PAWN_DIST_SUM = 47
@@ -26,12 +26,15 @@ MINIMIZING_PLAYER_CAMP = {
 MAXIMIZING_PLAYER_MARK = 1
 MINIMIZING_PLAYER_MARK = 2
 
-EARLY_GAME_TURN_LIMIT = 15
-MIDDLE_GAME_TURN_LIMIT = 30
+EARLY_GAME_TURN_LIMIT = 25
+MIDDLE_GAME_TURN_LIMIT = 75
 # END_GAME_TURN_LIMIT = 15
 
 EARLY_GAME_FORM_OBSTACLE_PENALTY_SQUARE_SIZE = 4
 MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET = 6
+
+OBSTACLE_CELLS_MIN_PLAYER = { (4,10), (5,10), (3,11), (4,11), (5,11), (4,12) }
+OBSTACLE_CELLS_MAX_PLAYER = { (11,3), (10,4), (11,4), (12,4), (10,5), (11,5) }
 
 END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MAX_PLAYER = {
     (0,15) : 0,
@@ -52,7 +55,13 @@ END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MAX_PLAYER = {
     (0,11) : 4,
     (1,11) : 4,
     (4,14) : 4,
-    (4,15) : 4
+    (4,15) : 4,
+    (2,11) : 5,
+    (3,12) : 5,
+    (4,13) : 5,
+    (3,11) : 6,
+    (4,12) : 6,
+    (4,11) : 7
 }
 
 END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MIN_PLAYER = {
@@ -71,6 +80,56 @@ END_GAME_FILL_FROM_END_CELLS_WEIGHTS_MIN_PLAYER = {
     (13,3) : 3,
     (14,3) : 3,
     (15,3) : 3,
+    (11,0) : 4,
+    (11,1) : 4,
+    (14,4) : 4,
+    (15,4) : 4,
+    (11,2) : 5,
+    (12,3) : 5,
+    (13,4) : 5,
+    (11,3) : 6,
+    (12,4) : 6,
+    (11,4) : 7
+}
+
+END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MAX_PLAYER = {
+    (0,15) : 2,
+    (0,14) : 0,
+    (1,14) : 0,
+    (1,15) : 0,
+    (0,13) : 3,
+    (1,13) : 3,
+    (2,13) : 3,
+    (2,14) : 3,
+    (2,15) : 3,
+    (0,12) : 1,
+    (1,12) : 1,
+    (2,12) : 1,
+    (3,13) : 1,
+    (3,14) : 1,
+    (3,15) : 1,
+    (0,11) : 4,
+    (1,11) : 4,
+    (4,14) : 4,
+    (4,15) : 4
+}
+
+END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MIN_PLAYER = {
+    (15,0) : 2,
+    (14,0) : 0,
+    (14,1) : 0,
+    (15,1) : 0,
+    (13,0) : 3,
+    (13,1) : 3,
+    (13,2) : 3,
+    (14,2) : 3,
+    (15,2) : 3,
+    (12,0) : 1,
+    (12,1) : 1,
+    (12,2) : 1,
+    (13,3) : 1,
+    (14,3) : 1,
+    (15,3) : 1,
     (11,0) : 4,
     (11,1) : 4,
     (14,4) : 4,
