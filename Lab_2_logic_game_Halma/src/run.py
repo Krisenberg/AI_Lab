@@ -21,8 +21,8 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
 
     # while (game.move_number <= 35 and check_board_for_win(game.game_state) == 0):
     while (check_board_for_win(game.game_state) == 0):
-        if (game.turn_number == 75):
-            pass
+        if (game.turn_number == 8 and not prune and not sort):
+            return game
         start_timestamp = datetime.now()
         best_move, best_eval, nodes_count = minimax(game, prune, sort)
         if best_move is None and game.maximizing_player and game.max_player_strategy.switch_strategy_check(game.game_state, game.turn_number):
