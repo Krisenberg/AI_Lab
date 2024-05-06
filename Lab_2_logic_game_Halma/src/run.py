@@ -14,7 +14,8 @@ def print_turn_stats(game: Halma, move_evaluation: float, nodes_count: int):
     print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}')
 
 
-def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, min_player_strategy: GameStrategy, max_depth: int = 3, debug_print: bool = False):
+def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, min_player_strategy: GameStrategy,
+             max_depth: int = 3, debug_print: bool = False, prune: bool = True, sort: bool = True):
     input = input_game_state(init_game_state_filename)
     game = Halma(input, max_depth, max_player_strategy, min_player_strategy)
 
@@ -23,13 +24,13 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
         if (game.turn_number == 75):
             pass
         start_timestamp = datetime.now()
-        best_move, best_eval, nodes_count = minimax(game)
+        best_move, best_eval, nodes_count = minimax(game, prune, sort)
         if best_move is None and game.maximizing_player and game.max_player_strategy.switch_strategy_check(game.game_state, game.turn_number):
             game.max_player_strategy.switch_strategy()
-            best_move, best_eval, nodes_count = minimax(game)
+            best_move, best_eval, nodes_count = minimax(game, prune, sort)
         if best_move is None and not game.maximizing_player and game.min_player_strategy.switch_strategy_check(game.game_state, game.turn_number):
             game.min_player_strategy.switch_strategy()
-            best_move, best_eval, nodes_count = minimax(game)
+            best_move, best_eval, nodes_count = minimax(game, prune, sort)
         # if best_move is None:
         #     best_move, best_eval, nodes_count = minimax(game)
         end_timestamp = datetime.now()
@@ -65,7 +66,7 @@ def test_moves(init_game_state_filename: str, max_player_strategy: GameStrategy,
 
 if __name__ == '__main__':
     # Link to the halma game strategy: https://www.wikihow.com/Win-at-Chinese-Checkers
-    max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_EVERY_OTHER)
+    max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
     min_player_strategy = GameStrategy(False, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
-    run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True)
+    run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True, prune=False, sort=False)
     # test_moves('test_moves_from_game.txt', max_player_strategy, min_player_strategy, 3)

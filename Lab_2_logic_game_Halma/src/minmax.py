@@ -21,11 +21,12 @@ from utils import players_pawns, floor_euclidean_distance, Move, make_move, reve
 #     return sorted(children, key=lambda move: abs(move.move_to[0] - goal_cell[0]) + abs(move.move_to[1] - goal_cell[1]))
     
 
-def minimax(game: Halma):
+def minimax(game: Halma, perform_pruning: bool = True, perform_sorting: bool = True):
 
     game_strategy = game.max_player_strategy if game.maximizing_player else game.min_player_strategy
 
-    def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool, alpha: float, beta: float, nodes_count: int):
+    def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool, alpha: float,
+                    beta: float, nodes_count: int):
         win_check = check_board_for_win(game_state)
         if win_check != 0:
             if win_check == 1:
@@ -50,9 +51,12 @@ def minimax(game: Halma):
         best_evaluation = -inf if maximizing_player else inf
         prune_flag = False
         current_nodes_count = 0
-        
+
         if maximizing_player:
-            children_sorted = game_strategy.prepare_nodes_order(children, True)
+            if perform_sorting:
+                children_sorted = game_strategy.prepare_nodes_order(children, True)
+            else:
+                children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, False, alpha, beta, 0)
@@ -63,13 +67,14 @@ def minimax(game: Halma):
                     best_move = move
                     best_evaluation = eval
                 alpha = max(alpha, eval)
-                if beta <= alpha:
+                if perform_pruning and (beta <= alpha):
                     prune_flag = True
         else:
-            children_sorted = game_strategy.prepare_nodes_order(children, False)
+            if perform_sorting:
+                children_sorted = game_strategy.prepare_nodes_order(children, False)
+            else:
+                children_sorted = list(children)
             for move in (move for move in children_sorted if not prune_flag):
-                if (move.move_from == (13,4) and move.move_to == (14,4)):
-                    pass
                 make_move(game_state, move)
                 _, eval, nodes = minimax_rec(game_state, depth_left - 1, True, alpha, beta, 0)
                 reverse_move(game_state, move)
@@ -79,7 +84,7 @@ def minimax(game: Halma):
                     best_move = move
                     best_evaluation = eval
                 beta = min(beta, eval)
-                if beta <= alpha:
+                if perform_pruning and (beta <= alpha):
                     prune_flag = True
         nodes_count += current_nodes_count
         return best_move, best_evaluation, nodes_count

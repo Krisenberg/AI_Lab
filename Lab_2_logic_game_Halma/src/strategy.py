@@ -121,7 +121,7 @@ class EarlyGameConquerCenter(Strategy):
         return True
     
     def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
-        return sorted(children, key=lambda move: floor_euclidean_distance(move.move_to, self.target_cell), reverse=True)
+        return sorted(children, key=lambda move: floor_euclidean_distance(move.move_to, self.target_cell), reverse=False)
 
 class MiddleGameMoveDiagonal(Strategy):
 
