@@ -82,33 +82,34 @@ class EarlyGameFormObstacle(Strategy):
                         )
                     )
                 ), reverse=True)
-        
-        # return sorted(children, key=lambda move: 
-        #     -2 if move.move_from in self.obstacle_cells and move.move_to not in self.obstacle_cells else (
-        #         -1 if move.move_from[0] > (base_corner[0] - self.penalty_square_size) and move.move_from[1] < (base_corner[1] + self.penalty_square_size)
-        #             and move.move_to[0] <= (base_corner[0] - self.penalty_square_size) and move.move_to[1] >= (base_corner[1] + self.penalty_square_size) else (
-        #             1 if move.move_from[0] <= (base_corner[0] - self.penalty_square_size) and move.move_from[1] >= (base_corner[1] + self.penalty_square_size)
-        #                 and move.move_to[0] > (base_corner[0] - self.penalty_square_size) and move.move_to[1] < (base_corner[1] + self.penalty_square_size) else (
-        #                 2 if move.move_from not in self.obstacle_cells and move.move_to in self.obstacle_cells else 0
-        #             )
-        #         )
-        #     ), reverse=True
-        # )
 
 class EarlyGameConquerCenter(Strategy):
 
     def __init__(self, maximizing_player: bool):
         self.max_turn_switch = const.EARLY_GAME_TURN_LIMIT
-        self.target_cell = (8,7) if maximizing_player else (7,8)
+        self.target_cell = (9,6) if maximizing_player else (6,9)
         self.max_player = maximizing_player
     
     def evaluate(self, game_state: list[list[int]]) -> float:
+        ''' We want to have as much our pawns around the target cell as possible
+            while having the least opponents' pawns.
+        '''
+        # pawns_max_player = players_pawns(game_state, True)
+        # pawns_min_player = players_pawns(game_state, False)
+        # dist_sum_max = 0
+        # dist_sum_min = 0
+        
+        # for pawn in pawns_max_player:
+        #     dist_sum_max += floor_euclidean_distance(pawn, self.target_cell)
+        # for pawn in pawns_min_player:
+        #     dist_sum_min += floor_euclidean_distance(pawn, self.target_cell)
+        
+        # return dist_sum_min - dist_sum_max
         pawns = players_pawns(game_state, self.max_player)
         dist_sum = 0
-
         for pawn in pawns:
-            dist_sum += (-1.0) * floor_euclidean_distance(pawn, self.target_cell) if self.max_player else floor_euclidean_distance(pawn, self.target_cell)
-        return dist_sum
+            dist_sum += floor_euclidean_distance(pawn, self.target_cell)
+        return -dist_sum if self.max_player else dist_sum
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
@@ -127,23 +128,38 @@ class MiddleGameMoveDiagonal(Strategy):
     def __init__(self, maximizing_player: bool):
         self.max_turn_switch = const.MIDDLE_GAME_TURN_LIMIT
         self.target_cell = (0,15) if maximizing_player else (15,0)
+        self.diagonal_offset = const.MIDDLE_GAME_MOVE_DIAGONAL_DIAGONAL_OFFSET
         self.goal_offset = const.MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET
         self.max_player = maximizing_player
     
     def _calculate_distance(self, pawn: tuple[int,int]):
         diagonal_offset = abs(15 - (pawn[0] + pawn[1]))
-        penalty = diagonal_offset if diagonal_offset <= 4 else (2 * diagonal_offset)
-        return floor_euclidean_distance(pawn, self.target_cell) + penalty
+        penalty = diagonal_offset if diagonal_offset <= self.diagonal_offset else (2 * diagonal_offset)
+        return (floor_euclidean_distance(pawn, self.target_cell) + penalty)
 
     def evaluate(self, game_state: list[list[int]]) -> float:
-        pawns = players_pawns(game_state, self.max_player)
-        dist_sum = 0
+        pawns_max_player = players_pawns(game_state, True)
+        pawns_min_player = players_pawns(game_state, False)
+        dist_sum_max = 0
+        dist_sum_min = 0
         
-        for pawn in pawns:
-            dist = self._calculate_distance(pawn)
-            dist_sum += (-1.0) * dist if self.max_player else dist
+        for pawn in pawns_max_player:
+            dist_sum_max += self._calculate_distance(pawn)
+        for pawn in pawns_min_player:
+            dist_sum_min += self._calculate_distance(pawn)
+        
+        # if self.max_player:
+        #     return dist_sum_min - dist_sum_max
+        # return dist_sum_max - dist_sum_min
+        return dist_sum_min - dist_sum_max
+        # pawns = players_pawns(game_state, self.max_player)
+        # dist_sum = 0
+        
+        # for pawn in pawns:
+        #     dist = self._calculate_distance(pawn)
+        #     dist_sum += (-1.0) * dist if self.max_player else dist
 
-        return dist_sum
+        # return dist_sum
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
@@ -245,28 +261,22 @@ class EndGameFillFromEnd(Strategy):
         return cell_weights[pawn] if pawn in cell_weights else (floor_euclidean_distance(pawn, target_cell) + 4)
     
     def evaluate(self, game_state: list[list[int]]) -> float:
-        pawns_max = players_pawns(game_state, True)
-        pawns_min = players_pawns(game_state, False)
-
-        dist_sum_max = 0
-        dist_sum_min = 0
-        for pawn in pawns_max:
-            # dist = self._calculate_distance(pawn, True)
-            dist_sum_max += self._calculate_distance(pawn, True)
-        for pawn in pawns_min:
-            dist_sum_min += self._calculate_distance(pawn, False)
+        pawns = players_pawns(game_state, self.max_player)
+        dist_sum = 0
+        for pawn in pawns:
+            dist_sum += self._calculate_distance(pawn, self.max_player)
         if self.max_player:
-            return dist_sum_min - dist_sum_max
-        return - dist_sum_max + dist_sum_min
+            return -dist_sum
+        return dist_sum
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         return False
     
     def estimate_move_value(self, move: Move, max_player: bool) -> float:
         target_cell = (0,15) if max_player else (15,0)
-        cell_weights = self.cell_weights_max if max_player else self.cell_weights_min
         distance_delta = floor_euclidean_distance(move.move_to, target_cell) - floor_euclidean_distance(move.move_from, target_cell)
-        pawn_in_base_bonus = cell_weights[move.move_to] if move.move_to in cell_weights else 0
+        base = const.MINIMIZING_PLAYER_CAMP if self.max_player else const.MAXIMIZING_PLAYER_CAMP
+        pawn_in_base_bonus = 1 if move.move_to in base else 0
         return distance_delta - pawn_in_base_bonus
     
     def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
@@ -288,35 +298,13 @@ class EndGameFillEveryOther(Strategy):
         return cell_weights[pawn] if pawn in cell_weights else (floor_euclidean_distance(pawn, target_cell) + 4)
     
     def evaluate(self, game_state: list[list[int]]) -> float:
-        pawns_max = players_pawns(game_state, True)
-        pawns_min = players_pawns(game_state, False)
-
-        dist_sum_max = 0
-        dist_sum_min = 0
-        for pawn in pawns_max:
-            # dist = self._calculate_distance(pawn, True)
-            dist_sum_max += self._calculate_distance(pawn, True)
-        for pawn in pawns_min:
-            dist_sum_min += self._calculate_distance(pawn, False)
+        pawns = players_pawns(game_state, self.max_player)
+        dist_sum = 0
+        for pawn in pawns:
+            dist_sum += self._calculate_distance(pawn, self.max_player)
         if self.max_player:
-            return dist_sum_min - dist_sum_max
-        return - dist_sum_max + dist_sum_min
-
-    # def _calculate_distance(self, pawn: tuple[int,int]) -> float:
-    #     if pawn in self.goal_cells_weights:
-    #         dist = self.goal_cells_weights[pawn]
-    #     else:
-    #         dist = floor_euclidean_distance(pawn, self.target_cell) + 4
-    #     return dist
-    
-    # def evaluate(self, game_state: list[list[int]]) -> float:
-    #     pawns = players_pawns(game_state, self.max_player)
-
-    #     dist_sum = 0
-    #     for pawn in pawns:
-    #         dist = self._calculate_distance(pawn)
-    #         dist_sum += (-1.0) * dist if self.max_player else dist
-    #     return dist_sum
+            return -dist_sum
+        return dist_sum
     
     def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
         return False
@@ -366,9 +354,6 @@ class GameStrategy:
     }
 
     def __init__(self, maximizing_player: bool, early_strategy: PlayerStrategy, mid_strategy: PlayerStrategy, end_strategy: PlayerStrategy):
-        # self.early_game_strategy = self.map_strategy_name_to_class[early_strategy](maximizing_player)
-        # self.middle_game_strategy = mid_strategy
-        # self.end_game_strategy = end_strategy
         self.strategies = [
             self.map_strategy_name_to_class[early_strategy](maximizing_player),
             self.map_strategy_name_to_class[mid_strategy](maximizing_player),

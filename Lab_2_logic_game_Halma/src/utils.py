@@ -12,6 +12,7 @@ def input_game_state(game_state_filename: str):
             game_state.append([int(x) for x in row_tab])
     return game_state
 
+
 def print_board(game_state: list[list[int]]):
     print("   ", " ".join([f"{x:02}" for x in range(const.BOARD_SIZE)]))
     print("   ", "------------------------------------------------")
@@ -32,10 +33,10 @@ def players_pawns(
                 pawn_positions.append((i,j))
     return pawn_positions
 
+
 def floor_euclidean_distance(pawn_pos: tuple[int,int], goal: tuple[int,int]):
     return floor(sqrt((pawn_pos[0] - goal[0]) ** 2 + (pawn_pos[1] - goal[1]) ** 2))  
-    # for row in game_state:
-    #     print(row)
+
 
 @dataclass(frozen=True)
 class Move:
@@ -51,6 +52,20 @@ class Move:
     """
     move_from: tuple[int, int]
     move_to: tuple[int,int]
+
+def make_move(game_state: list[list[int]], move: Move):
+    from_row, from_col = move.move_from
+    to_row, to_col = move.move_to
+    players_mark = game_state[from_row][from_col]
+    game_state[from_row][from_col] = 0
+    game_state[to_row][to_col] = players_mark
+
+def reverse_move(game_state: list[list[int]], move: Move):
+    from_row, from_col = move.move_to
+    to_row, to_col = move.move_from
+    players_mark = game_state[from_row][from_col]
+    game_state[from_row][from_col] = 0
+    game_state[to_row][to_col] = players_mark
 
 # if __name__ == '__main__':
 #     input_game_state('initial_state.txt')

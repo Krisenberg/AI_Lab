@@ -1,8 +1,11 @@
 import os
-# from enum import Enum
 
-# TEST_CASE_DIR = os.path.join(os.pardir, 'Test_cases')
-TEST_CASE_DIR = os.path.join(os.curdir, 'Test_cases')
+# Check if the Test_cases directory exists
+test_cases_dir = os.path.join(os.curdir, 'Test_cases')
+if not os.path.exists(test_cases_dir):
+    # If Test_cases directory doesn't exist, use the parent directory
+    test_cases_dir = os.path.join(os.pardir, 'Test_cases')
+TEST_CASE_DIR = test_cases_dir
 BOARD_SIZE = 16
 MAX_PAWN_DIST_SUM = 352
 MIN_PAWN_DIST_SUM = 47
@@ -28,10 +31,10 @@ MINIMIZING_PLAYER_MARK = 2
 
 EARLY_GAME_TURN_LIMIT = 25
 MIDDLE_GAME_TURN_LIMIT = 75
-# END_GAME_TURN_LIMIT = 15
 
 EARLY_GAME_FORM_OBSTACLE_PENALTY_SQUARE_SIZE = 4
-MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET = 6
+MIDDLE_GAME_MOVE_DIAGONAL_DIAGONAL_OFFSET = 4
+MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET = 7
 
 OBSTACLE_CELLS_MIN_PLAYER = { (4,10), (5,10), (3,11), (4,11), (5,11), (4,12) }
 OBSTACLE_CELLS_MAX_PLAYER = { (11,3), (10,4), (11,4), (12,4), (10,5), (11,5) }
@@ -135,16 +138,3 @@ END_GAME_FILL_EVERY_OTHER_CELLS_WEIGHTS_MIN_PLAYER = {
     (14,4) : 4,
     (15,4) : 4
 }
-
-# class PlayerStrategy(Enum):
-#     """ Enum representing player's strategy
-
-#     Options
-#     -------
-#     MIN = 1
-#         means player 1
-#     MAX = 2
-#         means player 2
-#     """
-#     MIN = 1
-#     MAX = 2

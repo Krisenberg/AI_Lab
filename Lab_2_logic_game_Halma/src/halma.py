@@ -1,5 +1,4 @@
 import constants as const
-from dataclasses import dataclass
 from strategy import GameStrategy
 
 class Halma:
@@ -16,14 +15,6 @@ class Halma:
         self.min_player_visited_nodes: dict[int,int] = {}
         self.max_player_move_time: dict[int,int] = {}
         self.min_player_move_time: dict[int,int] = {}
-
-
-    # def __init__(self, game_state: list[list[int]], minmax_depth: int, player_who_starts: int = 1):
-    #     self.game_state = game_state
-    #     self.minmax_depth = minmax_depth
-    #     self.player_turn = player_who_starts
-    #     self.board_size = const.BOARD_SIZE
-    #     self.turn_number = 1
 
 
 def generate_step_moves(
@@ -131,11 +122,6 @@ def check_board_for_win(game_state: list[list[int]]) -> int:
     if top_corner_check == 1:
         return 1
     return 0
-    # if bottom_corner_check == 0 and top_corner_check == 0:
-    #     return 0
-    # if bottom_corner_check != 0:
-    #     return bottom_corner_check
-    # return top_corner_check
 
 
 # if __name__=='__main__':
