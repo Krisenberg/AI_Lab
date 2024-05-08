@@ -1,17 +1,17 @@
 from datetime import datetime
 from halma import Halma, check_board_for_win, generate_valid_moves
 from minmax import minimax, make_move
-from utils import print_board, input_game_state, players_pawns
+from utils import print_board, input_game_state, players_pawns, Move
 from strategy import PlayerStrategy, GameStrategy
 
-def print_turn_stats_and_board(game: Halma, move_evaluation: float, nodes_count: int):
-    print(f'Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn: {game.turn_number} | Move: {game.move_number}')
-    print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}')
+def print_turn_stats_and_board(game: Halma, move_evaluation: float, nodes_count: int, best_move: Move):
+    print(f'Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn no: {game.turn_number} | Move no: {game.move_number}')
+    print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}, Move: {best_move.move_from} -> {best_move.move_to}')
     print_board(game.game_state)
 
-def print_turn_stats(game: Halma, move_evaluation: float, nodes_count: int):
+def print_turn_stats(game: Halma, move_evaluation: float, nodes_count: int, best_move: Move):
     print(f'Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn: {game.turn_number} | Move: {game.move_number}')
-    print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}')
+    print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}, Move: {best_move.move_from} -> {best_move.move_to}')
 
 
 def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, min_player_strategy: GameStrategy,
@@ -36,9 +36,9 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
         end_timestamp = datetime.now()
         make_move(game.game_state, best_move)
         if debug_print:
-            print_turn_stats_and_board(game, best_eval, nodes_count)
+            print_turn_stats_and_board(game, best_eval, nodes_count, best_move)
         else:
-            print_turn_stats(game, best_eval, nodes_count)
+            print_turn_stats(game, best_eval, nodes_count, best_move)
         if game.maximizing_player:
             game.max_player_visited_nodes[game.turn_number] = nodes_count
             game.max_player_move_time[game.turn_number] = round((end_timestamp - start_timestamp).total_seconds() * 1000.0)
@@ -68,5 +68,5 @@ if __name__ == '__main__':
     # Link to the halma game strategy: https://www.wikihow.com/Win-at-Chinese-Checkers
     max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
     min_player_strategy = GameStrategy(False, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
-    run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True, prune=False, sort=False)
+    run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True, prune=True, sort=True)
     # test_moves('test_moves_from_game.txt', max_player_strategy, min_player_strategy, 3)
