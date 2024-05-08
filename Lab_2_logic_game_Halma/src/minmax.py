@@ -31,12 +31,6 @@ def minimax(game: Halma, perform_pruning: bool = True, perform_sorting: bool = T
         if win_check != 0 or depth_left == 0:
             eval = inf if win_check == 1 else (-inf if win_check == 2 else game_strategy.evaluate_game_state(game_state))
             return None, eval, nodes_count
-        # if win_check != 0:
-        #     if win_check == 1:
-        #         return None, inf, nodes_count, game.minmax_depth - depth_left
-        #     return None, -inf, nodes_count, game.minmax_depth - depth_left
-        # if depth_left == 0:
-        #     return None, game_strategy.evaluate_game_state(game_state), nodes_count, game.minmax_depth
         
         turn_number = game.turn_number + (game.minmax_depth - depth_left)
         if game_strategy.switch_strategy_check(game_state, turn_number):
@@ -82,65 +76,6 @@ def minimax(game: Halma, perform_pruning: bool = True, perform_sorting: bool = T
                 beta = min(beta, eval)
             if perform_pruning and (beta <= alpha):
                 prune_flag = True
-
-
-
-        # if maximizing_player:
-        #     if perform_sorting:
-        #         children_sorted = game_strategy.prepare_nodes_order(children, True)
-        #     else:
-        #         children_sorted = list(children)
-        #     children_list = game_strategy.prepare_nodes_order(children, True)
-        #     if depth_left == game.minmax_depth and game_strategy.is_currently_end_game_strategy():
-        #         for move in children_sorted:
-        #             make_move(game_state, move)
-        #             win_check = check_board_for_win(game_state)
-        #             reverse_move(game_state, move)
-        #             current_nodes_count += 1
-        #             if win_check == 1:
-        #                 return move, inf, nodes_count, game.minmax_depth - depth_left
-        #     for move in (move for move in children_sorted if not prune_flag):
-        #         make_move(game_state, move)
-        #         _, eval, nodes, depth = minimax_rec(game_state, depth_left - 1, False, alpha, beta, 0)
-        #         reverse_move(game_state, move)
-        #         current_nodes_count += 1
-        #         nodes_count += nodes
-        #         if best_move is None or eval > best_evaluation or (eval == best_evaluation and depth < best_depth):
-        #             best_move = move
-        #             best_evaluation = eval
-        #             best_depth = depth
-        #         alpha = max(alpha, eval)
-        #         if perform_pruning and (beta <= alpha):
-        #             prune_flag = True
-        # else:
-        #     if perform_sorting:
-        #         children_sorted = game_strategy.prepare_nodes_order(children, False)
-        #     else:
-        #         children_sorted = list(children)
-        #     if depth_left == game.minmax_depth and game_strategy.is_currently_end_game_strategy():
-        #         for move in children_sorted:
-        #             make_move(game_state, move)
-        #             win_check = check_board_for_win(game_state)
-        #             reverse_move(game_state, move)
-        #             if win_check == 2:
-        #                 return move, -inf, nodes_count, game.minmax_depth - depth_left
-        #     for move in (move for move in children_sorted if not prune_flag):
-        #         make_move(game_state, move)
-        #         _, eval, nodes, depth = minimax_rec(game_state, depth_left - 1, True, alpha, beta, 0)
-        #         reverse_move(game_state, move)
-        #         current_nodes_count += 1
-        #         nodes_count += nodes
-        #         if best_move is None or eval < best_evaluation or (eval == best_evaluation and depth < best_depth):
-        #             best_move = move
-        #             best_evaluation = eval
-        #             best_depth = depth
-        #         beta = min(beta, eval)
-                # condition_1 = perform_pruning and not game_strategy.is_currently_end_game_strategy() and (beta <= alpha)
-                # condition_2 = perform_pruning and game_strategy.is_currently_end_game_strategy() and (depth <= 1) and (beta <= alpha)
-                # if condition_1 or condition_2:
-                #     prune_flag = True
-                # if perform_pruning and (beta <= alpha):
-                #     prune_flag = True
                 
         nodes_count += current_nodes_count
         return best_move, best_evaluation, nodes_count
