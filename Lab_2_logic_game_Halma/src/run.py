@@ -66,7 +66,7 @@ def test_moves(init_game_state_filename: str, max_player_strategy: GameStrategy,
 
 if __name__ == '__main__':
     # Link to the halma game strategy: https://www.wikihow.com/Win-at-Chinese-Checkers
-    max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_EVERY_OTHER)
-    min_player_strategy = GameStrategy(False, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
+    max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_CONTROL_PAWNS, PlayerStrategy.END_GAME_FILL_EVERY_OTHER)
+    min_player_strategy = GameStrategy(False, PlayerStrategy.EARLY_GAME_FORM_OBSTACLE, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
     run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True, prune=True, sort=True)
     # test_moves('test_moves_from_game.txt', max_player_strategy, min_player_strategy, 3)
