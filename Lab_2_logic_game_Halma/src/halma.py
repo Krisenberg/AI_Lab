@@ -122,10 +122,3 @@ def check_board_for_win(game_state: list[list[int]]) -> int:
     if top_corner_check == 1:
         return 1
     return 0
-
-
-# if __name__=='__main__':
-#     print('Game state:')
-#     line = input().split(' ')
-#     print(line)
-#     print(type(line))

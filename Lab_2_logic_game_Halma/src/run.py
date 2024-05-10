@@ -19,11 +19,11 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
     input = input_game_state(init_game_state_filename)
     game = Halma(input, max_depth, max_player_strategy, min_player_strategy)
 
-    # while (game.move_number <= 35 and check_board_for_win(game.game_state) == 0):
     while (check_board_for_win(game.game_state) == 0):
         if (game.turn_number == 8 and not prune and not sort):
             return game
         start_timestamp = datetime.now()
+
         best_move, best_eval, nodes_count = minimax(game, prune, sort)
         if best_move is None and game.maximizing_player and game.max_player_strategy.switch_strategy_check(game.game_state, game.turn_number):
             game.max_player_strategy.switch_strategy()
@@ -31,8 +31,7 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
         if best_move is None and not game.maximizing_player and game.min_player_strategy.switch_strategy_check(game.game_state, game.turn_number):
             game.min_player_strategy.switch_strategy()
             best_move, best_eval, nodes_count = minimax(game, prune, sort)
-        # if best_move is None:
-        #     best_move, best_eval, nodes_count = minimax(game)
+
         end_timestamp = datetime.now()
         make_move(game.game_state, best_move)
         if debug_print:
@@ -42,13 +41,9 @@ def run_game(init_game_state_filename: str, max_player_strategy: GameStrategy, m
         if game.maximizing_player:
             game.max_player_visited_nodes[game.turn_number] = nodes_count
             game.max_player_move_time[game.turn_number] = round((end_timestamp - start_timestamp).total_seconds() * 1000.0)
-            # if game.max_player_strategy.is_currently_end_game_strategy():
-            #     game.max_player_strategy.tabu_set_to.add(best_move.move_from)
         else:
             game.min_player_visited_nodes[game.turn_number] = nodes_count
             game.min_player_move_time[game.turn_number] = round((end_timestamp - start_timestamp).total_seconds() * 1000.0)
-            # if game.min_player_strategy.is_currently_end_game_strategy():
-            #     game.min_player_strategy.tabu_set_to.add(best_move.move_from)
         game.maximizing_player = not game.maximizing_player
         game.turn_number = (game.move_number // 2 ) + 1
         game.move_number += 1
@@ -65,7 +60,6 @@ def test_moves(init_game_state_filename: str, max_player_strategy: GameStrategy,
             print(valid_moves)
 
 if __name__ == '__main__':
-    # Link to the halma game strategy: https://www.wikihow.com/Win-at-Chinese-Checkers
     max_player_strategy = GameStrategy(True, PlayerStrategy.EARLY_GAME_CONQUER_CENTER, PlayerStrategy.MIDDLE_GAME_CONTROL_PAWNS, PlayerStrategy.END_GAME_FILL_EVERY_OTHER)
     min_player_strategy = GameStrategy(False, PlayerStrategy.EARLY_GAME_FORM_OBSTACLE, PlayerStrategy.MIDDLE_GAME_MOVE_DIAGONAL, PlayerStrategy.END_GAME_FILL_FROM_END)
     run_game('initial_state.txt', max_player_strategy, min_player_strategy, 3, debug_print=True, prune=True, sort=True)

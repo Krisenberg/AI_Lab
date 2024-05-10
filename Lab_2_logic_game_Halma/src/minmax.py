@@ -1,25 +1,6 @@
 from math import inf
 from halma import Halma, check_board_for_win, generate_valid_moves
-from utils import players_pawns, floor_euclidean_distance, Move, make_move, reverse_move
-# from constants import MAXIMIZING_PLAYER_CAMP, MINIMIZING_PLAYER_CAMP, MIN_PAWN_DIST_SUM, MAX_PAWN_DIST_SUM  
-
-# def mockup_heuristic(game_state: list[list[int]], maximizing_player: bool) -> float:
-#     goal_cell = (0,15) if maximizing_player else (15,0)
-#     goal_camp = MINIMIZING_PLAYER_CAMP if maximizing_player else MAXIMIZING_PLAYER_CAMP
-#     pawns = players_pawns(game_state, maximizing_player)
-#     dist_sum = 0
-#     for pawn in pawns:
-#         dist_sum += floor_euclidean_distance(pawn, goal_cell)
-#     if maximizing_player:
-#         dist_percentage = (1.0 - ((dist_sum - MIN_PAWN_DIST_SUM)/(MAX_PAWN_DIST_SUM - MIN_PAWN_DIST_SUM))) * 100.0
-#         return dist_percentage
-#     dist_percentage = ((dist_sum - MIN_PAWN_DIST_SUM)/(MAX_PAWN_DIST_SUM - MIN_PAWN_DIST_SUM)) * 100.0
-#     return dist_percentage
-
-# def sort_children_on_distance(children: set[Move], maximizing_player: bool) -> list[Move]:
-#     goal_cell = (0,15) if maximizing_player else (15,0)
-#     return sorted(children, key=lambda move: abs(move.move_to[0] - goal_cell[0]) + abs(move.move_to[1] - goal_cell[1]))
-    
+from utils import players_pawns, Move, make_move, reverse_move    
 
 def minimax(game: Halma, perform_pruning: bool = True, perform_sorting: bool = True):
 

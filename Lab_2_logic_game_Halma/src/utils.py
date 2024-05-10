@@ -3,6 +3,7 @@ import os
 from math import floor, sqrt
 import constants as const
 
+
 def input_game_state(game_state_filename: str):
     file_path = os.path.join(const.TEST_CASE_DIR, game_state_filename)
     game_state = []
@@ -66,6 +67,3 @@ def reverse_move(game_state: list[list[int]], move: Move):
     players_mark = game_state[from_row][from_col]
     game_state[from_row][from_col] = 0
     game_state[to_row][to_col] = players_mark
-
-# if __name__ == '__main__':
-#     input_game_state('initial_state.txt')
