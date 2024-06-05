@@ -1,2 +1,4 @@
-ipykernel
-experta
+# during the lab class Python 3.8.10 was used inside this venv
+ipykernel == 6.29.4
+experta == 1.9.4
+setuptools
