@@ -17,6 +17,7 @@ class Symptoms(Enum):
     COFFEE_TOO_FINE = "Is ground coffee very fine [if used]?"
     TOO_MUCH_COFFEE = "Is added too much ground coffee [if used]?"
     BREWING_UNIT_CLOGGED = "Is brewing unit clogged?"
+    NOT_ADJUSTED_GRIND_SIZE = "Is grind size NOT adjusted properly to the coffee beans (too fine / too coarse)?"
     FOREIGN_OBJECTS = "Are foreign objects in grinder?"
     BREWING_UNIT_POSITION_INCORRECT = "Is brewing unit positioned incorrectly?"
     OLD_COFFEE_BEANS = "Are coffee beans NOT freshly roasted?"
@@ -36,6 +37,21 @@ class Actions(Enum):
     USE_FRESH_COFFEE_BEANS = "Use freshly roasted coffee beans"
     CHANGE_COFFEE_BEANS = "Change the type of coffee beans"
     CONTACT_SERVICE = "Seems like a bigger issue - please contact professional service"
+
+symptom_to_action_map = {
+    Symptoms.SYSTEM_CALCIFICATION.value : Actions.DESCALE_SYSTEM.value,
+    Symptoms.SPUMATORE_CLOGGED.value : Actions.CLEAN_SPUMATORE.value,
+    Symptoms.INAPPROPRIATE_MILK.value : Actions.USE_COLD_MILK.value,
+    Symptoms.INAPPROPRIATE_GRIND_SIZE.value : Actions.SET_PROPER_GRIND_SIZE.value,
+    Symptoms.COFFEE_TOO_FINE.value : Actions.USE_COARSER_GROUND_COFFEE.value,
+    Symptoms.TOO_MUCH_COFFEE.value : Actions.USE_LESS_GROUND_COFFEE.value,
+    Symptoms.BREWING_UNIT_CLOGGED.value : Actions.CLEAN_BREWING_UNIT.value,
+    Symptoms.NOT_ADJUSTED_GRIND_SIZE.value : Actions.OPTIMIZE_GRIND_SIZE.value,
+    Symptoms.FOREIGN_OBJECTS.value : Actions.REMOVE_FOREIGN_OBJECTS.value,
+    Symptoms.BREWING_UNIT_POSITION_INCORRECT.value : Actions.RESET_BREWING_UNIT.value,
+    Symptoms.OLD_COFFEE_BEANS.value : Actions.USE_FRESH_COFFEE_BEANS.value,
+    Symptoms.INAPPROPRIATE_COFFEE_BEANS.value : Actions.CHANGE_COFFEE_BEANS.value
+}
 
 class CauseStatus(Enum):
     IRRELEVANT = 0
