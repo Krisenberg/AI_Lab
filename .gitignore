@@ -2,3 +2,15 @@ connection_graph.csv
 
 __pycache__/
 Lab_2_logic_game_Halma/Notes/
+
+# Images
+Lab_1_graph_traversal/Screens
+Lab_2_logic_game_Halma/Images
+
+# Instructions
+Lab_1_graph_traversal/PDFs/Lab_1_PL.pdf
+Lab_2_logic_game_Halma/PDFs/SIiW___zad_2__wer__2024_-2.pdf
+
+# Ignore later lab classes
+Lab_3_knowledge_base_reasoning/
+Lab_4_machine_learning/
