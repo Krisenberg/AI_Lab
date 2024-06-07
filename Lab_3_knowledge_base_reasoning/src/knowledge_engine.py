@@ -1,4 +1,4 @@
-from experta import KnowledgeEngine, DefFacts, Rule, AND, MATCH, TEST, FORALL
+from experta import KnowledgeEngine, DefFacts, Rule, AND, MATCH, TEST, FORALL, OR
 from utils import TerminalColors
 from knowledge_base import Problems, Symptoms, Actions, Problem, Cause, Solution, CauseStatus, symptom_to_action_map
 
@@ -14,7 +14,10 @@ class CoffeeMachineExpert(KnowledgeEngine):
         status = CauseStatus.CONFIRMED if response == 'y' else CauseStatus.DENIED
         self.declare(Cause(description=description, status=status))
 
-    @Rule(Problem(description=Problems.HOT_WATER_OR_STEAM.value))
+    @Rule(OR(Problem(description=Problems.HOT_WATER_OR_STEAM.value),
+             Problem(description=Problems.COFFEE_DROPS.value),
+             AND(Problem(description=Problems.MILK_FROTH_WEAK.value),
+                 Cause(description=Symptoms.INAPPROPRIATE_MILK.value, status=CauseStatus.DENIED))))
     def check_system_calcification(self):
         self.declare(Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.INVESTIGATING))
 
@@ -27,17 +30,19 @@ class CoffeeMachineExpert(KnowledgeEngine):
     # def diagnose_system_calcification(self):
     #     self.declare(Solution(action=Actions.DESCALE_SYSTEM.value))
 
-    @Rule(AND(Problem(description=Problems.HOT_WATER_OR_STEAM.value),
-              Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.DENIED)))
-    def diagnose_system_calcification(self):
-        self.declare(Cause(description=Symptoms.SPUMATORE_CLOGGED.value, status=CauseStatus.INVESTIGATING))
+    # @Rule(AND(Problem(description=Problems.HOT_WATER_OR_STEAM.value),
+    #           Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.DENIED)))
+    # def diagnose_system_calcification(self):
+    #     self.declare(Cause(description=Symptoms.SPUMATORE_CLOGGED.value, status=CauseStatus.INVESTIGATING))
     
     # @Rule(AND(Problem(description=Problems.HOT_WATER_OR_STEAM.value),
     #           Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.CONFIRMED)))
     # def diagnose_system_calcification(self):
     #     self.declare(Solution(action=Actions.DESCALE_SYSTEM.value))
 
-    @Rule(Problem(description=Problems.MILK_FROTH_WEAK.value))
+    @Rule(OR(Problem(description=Problems.MILK_FROTH_WEAK.value),
+             AND(Problem(description=Problems.HOT_WATER_OR_STEAM.value),
+                 Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.DENIED))))
     def check_spumatore_clogged(self):
         self.declare(Cause(description=Symptoms.SPUMATORE_CLOGGED.value, status=CauseStatus.INVESTIGATING))
 
@@ -57,9 +62,9 @@ class CoffeeMachineExpert(KnowledgeEngine):
     # def diagnose_inappropriate_milk(self):
     #     self.declare(Solution(action=Actions.USE_COLD_MILK.value))
 
-    @Rule(Problem(description=Problems.COFFEE_DROPS.value))
-    def check_system_calcification_for_drops(self):
-        self.declare(Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.INVESTIGATING))
+    # @Rule(Problem(description=Problems.COFFEE_DROPS.value))
+    # def check_system_calcification_for_drops(self):
+    #     self.declare(Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.INVESTIGATING))
 
     # @Rule(AND(Problem(description=Problems.COFFEE_DROPS.value),
     #           Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.CONFIRMED)))
@@ -68,7 +73,7 @@ class CoffeeMachineExpert(KnowledgeEngine):
 
     @Rule(AND(Problem(description=Problems.COFFEE_DROPS.value),
               Cause(description=Symptoms.SYSTEM_CALCIFICATION.value, status=CauseStatus.DENIED)))
-    def check_INAPPROPRIATE_GRIND_SIZE(self):
+    def check_inappropriate_grind_size(self):
         self.declare(Cause(description=Symptoms.INAPPROPRIATE_GRIND_SIZE.value, status=CauseStatus.INVESTIGATING))
 
     # @Rule(AND(Problem(description=Problems.COFFEE_DROPS.value),
@@ -96,8 +101,10 @@ class CoffeeMachineExpert(KnowledgeEngine):
     # def diagnose_too_much_coffee(self):
     #     self.declare(Solution(action=Actions.USE_LESS_GROUND_COFFEE.value))
 
-    @Rule(Problem(description=Problems.NO_CREMA.value))
-    def check_brewing_unit_clogged_for_crema(self):
+    @Rule(OR(Problem(description=Problems.NO_CREMA.value),
+             AND(Problem(description=Problems.COFFEE_DROPS.value),
+                 Cause(description=Symptoms.TOO_MUCH_COFFEE.value, status=CauseStatus.DENIED))))
+    def check_brewing_unit_clogged(self):
         self.declare(Cause(description=Symptoms.BREWING_UNIT_CLOGGED.value, status=CauseStatus.INVESTIGATING))
 
     # @Rule(AND(Problem(description=Problems.NO_CREMA.value),
@@ -167,9 +174,9 @@ class CoffeeMachineExpert(KnowledgeEngine):
         print(f"\n{TerminalColors.GREEN}Solution:{TerminalColors.RESET} {action}")
         self.halt()
 
-    @Rule(Cause(description=MATCH.description, status=CauseStatus.CONFIRMED))
-    def print_cause(self, description):
-        print(f"\n{TerminalColors.YELLOW}Detected cause{TerminalColors.RESET}: {description}")
+    # @Rule(Cause(description=MATCH.description, status=CauseStatus.CONFIRMED))
+    # def print_cause(self, description):
+    #     print(f"\n{TerminalColors.YELLOW}Detected cause{TerminalColors.RESET}: {description}")
 
     @Rule(Cause(description=MATCH.description, status=CauseStatus.CONFIRMED))
     def diagnose_solution(self, description):
