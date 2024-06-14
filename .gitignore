@@ -12,8 +12,12 @@ Lab_1_graph_traversal/Screens
 Lab_2_logic_game_Halma/Images
 Lab_3_knowledge_base_reasoning/assets
 
+screens/
+
 # Instructions
 Lab_1_graph_traversal/PDFs/Lab_1_PL.pdf
 Lab_2_logic_game_Halma/PDFs/SIiW___zad_2__wer__2024_-2.pdf
 Lab_3_knowledge_base_reasoning/PDFs/SIiIW_3_BW_i_wnioskowanie_2024.pdf
 Lab_4_machine_learning/PDFs/Lista_4_PL.pdf
+
+instructions/
