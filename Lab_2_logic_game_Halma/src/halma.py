@@ -18,8 +18,8 @@ class Halma:
 
 
 def generate_step_moves(
-        game_state: list[list[int]],
-        pawn_pos: tuple[int,int]
+        game_state: "list[list[int]]",
+        pawn_pos: "tuple[int,int]"
     ):
     """Function to generate valid step moves for the pawn. Step move is a move
     onto the neighbour cell without jumping, for example: (3,4) -> (3,5).
@@ -37,8 +37,8 @@ def generate_step_moves(
 
 
 def generate_possible_jumps(
-        game_state: list[list[int]],
-        pawn_pos: tuple[int, int]
+        game_state: "list[list[int]]",
+        pawn_pos: "tuple[int, int]"
     ):
     """
         Function to generate possible jumps for the pawn from a certain position.
@@ -63,9 +63,9 @@ def generate_possible_jumps(
 
 
 def generate_jump_moves(
-        game_state: list[list[int]],
-        pawn_pos: tuple[int,int],
-        tabu_pos: set[tuple[int,int]]
+        game_state: "list[list[int]]",
+        pawn_pos: "tuple[int,int]",
+        tabu_pos: "set[tuple[int,int]]"
     ):
     """
         This function takes all possible jumps from a specific position and recursively
@@ -83,15 +83,15 @@ def generate_jump_moves(
 
 
 def generate_valid_moves(
-        game_state: list[list[int]],
-        pawn_pos: tuple[int,int]
+        game_state: "list[list[int]]",
+        pawn_pos: "tuple[int,int]"
     ):
     step_moves = generate_step_moves(game_state, pawn_pos)
     jump_moves = generate_jump_moves(game_state, pawn_pos, tabu_pos=set())
     return step_moves + jump_moves
 
 
-def check_corner_for_win(game_state: list[list[int]], bottom_corner: bool):
+def check_corner_for_win(game_state: "list[list[int]]", bottom_corner: bool):
     corner_cells_offsets = {
         0 : [0, 1, 2, 3, 4],
         1 : [0, 1, 2, 3, 4],
@@ -114,7 +114,7 @@ def check_corner_for_win(game_state: list[list[int]], bottom_corner: bool):
     return cell_mark
 
 
-def check_board_for_win(game_state: list[list[int]]) -> int:
+def check_board_for_win(game_state: "list[list[int]]") -> int:
     bottom_corner_check = check_corner_for_win(game_state, True)
     top_corner_check = check_corner_for_win(game_state, False)
     if bottom_corner_check == 2:

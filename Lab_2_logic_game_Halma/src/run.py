@@ -5,12 +5,12 @@ from utils import print_board, input_game_state, players_pawns, Move
 from strategy import PlayerStrategy, GameStrategy
 
 def print_turn_stats_and_board(game: Halma, move_evaluation: float, nodes_count: int, best_move: Move):
-    print(f'Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn no: {game.turn_number} | Move no: {game.move_number}')
+    print(f"Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn no: {game.turn_number} | Move no: {game.move_number}")
     print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}, Move: {best_move.move_from} -> {best_move.move_to}')
     print_board(game.game_state)
 
 def print_turn_stats(game: Halma, move_evaluation: float, nodes_count: int, best_move: Move):
-    print(f'Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn: {game.turn_number} | Move: {game.move_number}')
+    print(f"Player: {'MAX [1]' if game.maximizing_player else 'MIN [2]'} | Turn: {game.turn_number} | Move: {game.move_number}")
     print(f'Evaluation: {move_evaluation}, nodes count: {nodes_count}, Move: {best_move.move_from} -> {best_move.move_to}')
 
 

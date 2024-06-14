@@ -6,7 +6,7 @@ def minimax(game: Halma, perform_pruning: bool = True, perform_sorting: bool = T
 
     game_strategy = game.max_player_strategy if game.maximizing_player else game.min_player_strategy
 
-    def minimax_rec(game_state: list[list[int]], depth_left: int, maximizing_player: bool,
+    def minimax_rec(game_state: "list[list[int]]", depth_left: int, maximizing_player: bool,
                     alpha: float, beta: float, nodes_count: int):
         win_check = check_board_for_win(game_state)
         if win_check != 0 or depth_left == 0:

@@ -7,15 +7,15 @@ import constants as const
 class Strategy(ABC):
 
     @abstractmethod
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         pass
 
     @abstractmethod
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         pass
 
     @abstractmethod
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         pass
 
 class EarlyGameFormObstacle(Strategy):
@@ -28,7 +28,7 @@ class EarlyGameFormObstacle(Strategy):
         self.escape_square_size = const.EARLY_GAME_FORM_OBSTACLE_ESCAPE_SQUARE_SIZE
         self.min_pawns_outside_danger_zone = const.EARLY_GAME_FORM_OBSTACLE_MIN_AMOUT_OF_PAWNS_OUTSIDE_DANGER_ZONE
     
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         ''' We want to move our pawns towards middle of the board but also we would like to form some kind
             of obstacle on the main diagonal that will stop the opponent later.
         '''
@@ -51,7 +51,7 @@ class EarlyGameFormObstacle(Strategy):
             eval = (2 * dist_sum) + free_cells_obstacle_area
         return -eval if self.max_player else eval
 
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
             return True
         pawns = players_pawns(game_state, self.max_player)
@@ -63,7 +63,7 @@ class EarlyGameFormObstacle(Strategy):
                 pawns_in_obstacle_area += 1
         return True if pawns_in_obstacle_area == len(self.obstacle_cells) else False
     
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         return sorted(children, key=lambda move: floor_euclidean_distance(move.move_to, self.target_cell), reverse=False)
 
 
@@ -74,7 +74,7 @@ class EarlyGameConquerCenter(Strategy):
         self.target_cell = const.EARLY_GAME_CONQUER_CENTER_TARGET_CELL_MAX if maximizing_player else const.EARLY_GAME_CONQUER_CENTER_TARGET_CELL_MIN
         self.max_player = maximizing_player
     
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         ''' We want to have as much our pawns around the target cell as possible.
         '''
         pawns = players_pawns(game_state, self.max_player)
@@ -83,7 +83,7 @@ class EarlyGameConquerCenter(Strategy):
             dist_sum += floor_euclidean_distance(pawn, self.target_cell)
         return -(dist_sum) if self.max_player else dist_sum
     
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
             return True
         pawns = players_pawns(game_state, self.max_player)
@@ -92,7 +92,7 @@ class EarlyGameConquerCenter(Strategy):
                 return False
         return True
     
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         return sorted(children, key=lambda move: floor_euclidean_distance(move.move_to, self.target_cell), reverse=False)
     
 class MiddleGameMoveDiagonal(Strategy):
@@ -104,14 +104,14 @@ class MiddleGameMoveDiagonal(Strategy):
         self.goal_offset = const.MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET
         self.max_player = maximizing_player
 
-    def __is_pawn_in_goal_area(self, pawn: tuple[int,int]):
+    def __is_pawn_in_goal_area(self, pawn: "tuple[int,int]"):
         if self.max_player and (pawn[0] >= self.target_cell[0] + self.goal_offset or pawn[1] <= self.target_cell[1] - self.goal_offset):
             return False
         if not self.max_player and (pawn[0] <= self.target_cell[0] - self.goal_offset or pawn[1] >= self.target_cell[1] + self.goal_offset):
             return False
         return True
 
-    def __calculate_distance(self, pawn: tuple[int,int]):
+    def __calculate_distance(self, pawn: "tuple[int,int]"):
         diagonal_offset = abs(15 - (pawn[0] + pawn[1]))
         penalty = diagonal_offset if diagonal_offset <= self.diagonal_offset else (2 * diagonal_offset)
         distance_to_target = floor_euclidean_distance(pawn, self.target_cell)
@@ -119,14 +119,14 @@ class MiddleGameMoveDiagonal(Strategy):
             return 0
         return distance_to_target + penalty
 
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         pawns = players_pawns(game_state, self.max_player)
         dist_sum = 0
         for pawn in pawns:
             dist_sum += self.__calculate_distance(pawn)
         return -dist_sum if self.max_player else dist_sum
 
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
             return True
         pawns = players_pawns(game_state, self.max_player)
@@ -135,7 +135,7 @@ class MiddleGameMoveDiagonal(Strategy):
                 return False
         return True
 
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         return sorted(children, key=lambda move: self.__calculate_distance(move.move_to) - self.__calculate_distance(move.move_from))
                       
 
@@ -150,14 +150,14 @@ class MiddleGameControlPawns(Strategy):
         self.goal_offset = const.MIDDLE_GAME_MOVE_DIAGONAL_GOAL_OFFSET
         self.max_player = maximizing_player
 
-    def __is_pawn_in_goal_area(self, pawn: tuple[int,int]):
+    def __is_pawn_in_goal_area(self, pawn: "tuple[int,int]"):
         if self.max_player and (pawn[0] >= self.target_cell[0] + self.goal_offset or pawn[1] <= self.target_cell[1] - self.goal_offset):
             return False
         if not self.max_player and (pawn[0] <= self.target_cell[0] - self.goal_offset or pawn[1] >= self.target_cell[1] + self.goal_offset):
             return False
         return True
 
-    def check_neighbours(self, pawn_pos: tuple[int,int], game_state: list[list[int]]):
+    def check_neighbours(self, pawn_pos: "tuple[int,int]", game_state: "list[list[int]]"):
         i_offsets = [-1, 0, 1]
         j_offsets = [-1, 0, 1]
         opponent_mark = 2 if self.max_player else 1
@@ -177,7 +177,7 @@ class MiddleGameControlPawns(Strategy):
                             neighbour_allies += 1
         return neighbour_opponents, neighbour_allies
     
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         pawns = players_pawns(game_state, self.max_player)
         dist_sum = 0
         neigh_opponents_sum = 0
@@ -191,7 +191,7 @@ class MiddleGameControlPawns(Strategy):
         value = dist_sum + neigh_opponents_sum - neigh_allies_sum
         return -value if self.max_player else value
     
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         if turn_number == self.max_turn_switch:
             return True
         pawns = players_pawns(game_state, self.max_player)
@@ -201,7 +201,7 @@ class MiddleGameControlPawns(Strategy):
                 return False
         return True
     
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         def __calc_dist_delta(move: Move):
             dist_to = 0 if self.__is_pawn_in_goal_area(move.move_to) else floor_euclidean_distance(move.move_to, self.target_cell)
             dist_from = 0 if self.__is_pawn_in_goal_area(move.move_from) else floor_euclidean_distance(move.move_from, self.target_cell)
@@ -217,17 +217,17 @@ class EndGameFillFromEnd(Strategy):
         self.outside_goal_area_penalty = const.END_GAME_FILL_FROM_END_OUTSIDE_AREA_PENALTY
         self.max_player = maximizing_player
 
-    def __calculate_distance(self, pawn: tuple[int,int], max_player: bool) -> float:
+    def __calculate_distance(self, pawn: "tuple[int,int]", max_player: bool) -> float:
         return self.goal_cells_weights[pawn] if pawn in self.goal_cells_weights else (floor_euclidean_distance(pawn, self.target_cell) + self.outside_goal_area_penalty)
     
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         pawns = players_pawns(game_state, self.max_player)
         dist_sum = 0
         for pawn in pawns:
             dist_sum += self.__calculate_distance(pawn, self.max_player)
         return -dist_sum if self.max_player else dist_sum
     
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         return False
     
     def estimate_move_value(self, move: Move, max_player: bool) -> float:
@@ -235,7 +235,7 @@ class EndGameFillFromEnd(Strategy):
         pawn_in_base_bonus = (self.outside_goal_area_penalty - self.goal_cells_weights[move.move_to]) if move.move_to in self.goal_cells_weights else 0
         return distance_delta - pawn_in_base_bonus
     
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         return sorted(children, key=lambda move: self.estimate_move_value(move, max_player))
     
 
@@ -247,17 +247,17 @@ class EndGameFillEveryOther(Strategy):
         self.target_cell = (0,15) if maximizing_player else (15,0)
         self.penalty = const.END_GAME_FILL_EVERY_OTHER_PENALTY
 
-    def _calculate_distance(self, pawn: tuple[int,int], max_player: bool) -> float:
+    def _calculate_distance(self, pawn: "tuple[int,int]", max_player: bool) -> float:
         return self.goal_cells_weights[pawn] if pawn in self.goal_cells_weights else (floor_euclidean_distance(pawn, self.target_cell) + self.penalty)
     
-    def evaluate(self, game_state: list[list[int]]) -> float:
+    def evaluate(self, game_state: "list[list[int]]") -> float:
         pawns = players_pawns(game_state, self.max_player)
         dist_sum = 0
         for pawn in pawns:
             dist_sum += self._calculate_distance(pawn, self.max_player)
         return -dist_sum if self.max_player else dist_sum
     
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         return False
     
     def estimate_move_value(self, move: Move, max_player: bool) -> float:
@@ -265,7 +265,7 @@ class EndGameFillEveryOther(Strategy):
         pawn_in_base_bonus = (self.penalty - self.goal_cells_weights[move.move_to]) if move.move_to in self.goal_cells_weights else 0
         return distance_delta - pawn_in_base_bonus
     
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         return sorted(children, key=lambda move: self.estimate_move_value(move, max_player))      
 
 
@@ -309,10 +309,10 @@ class GameStrategy:
         self.current_strategy = 0
         self.tabu_set_from = set()
     
-    def evaluate_game_state(self, game_state: list[list[int]]) -> float:
+    def evaluate_game_state(self, game_state: "list[list[int]]") -> float:
         return self.strategies[self.current_strategy].evaluate(game_state)
     
-    def switch_strategy_check(self, game_state: list[list[int]], turn_number: int) -> bool:
+    def switch_strategy_check(self, game_state: "list[list[int]]", turn_number: int) -> bool:
         return self.strategies[self.current_strategy].switch_strategy_check(game_state, turn_number)
     
     def switch_strategy(self) -> None:
@@ -322,7 +322,7 @@ class GameStrategy:
         if self.current_strategy == 2:
             self.tabu_set_from = set()
 
-    def prepare_nodes_order(self, children: set[Move], max_player: bool) -> list[Move]:
+    def prepare_nodes_order(self, children: "set[Move]", max_player: bool) -> "list[Move]":
         valid_moves = {move for move in children if move.move_from not in self.tabu_set_from}
         return self.strategies[self.current_strategy].prepare_nodes_order(valid_moves, max_player)
 

@@ -14,7 +14,7 @@ def input_game_state(game_state_filename: str):
     return game_state
 
 
-def print_board(game_state: list[list[int]]):
+def print_board(game_state: "list[list[int]]"):
     print("   ", " ".join([f"{x:02}" for x in range(const.BOARD_SIZE)]))
     print("   ", "------------------------------------------------")
     for i in range(const.BOARD_SIZE):
@@ -23,7 +23,7 @@ def print_board(game_state: list[list[int]]):
 
 
 def players_pawns(
-        game_state: list[list[int]],
+        game_state: "list[list[int]]",
         maximizing_player: bool    
     ):
     player = 1 if maximizing_player else 2
@@ -35,7 +35,7 @@ def players_pawns(
     return pawn_positions
 
 
-def floor_euclidean_distance(pawn_pos: tuple[int,int], goal: tuple[int,int]):
+def floor_euclidean_distance(pawn_pos: "tuple[int,int]", goal: "tuple[int,int]"):
     return floor(sqrt((pawn_pos[0] - goal[0]) ** 2 + (pawn_pos[1] - goal[1]) ** 2))  
 
 
@@ -51,17 +51,17 @@ class Move:
 
         In both cases: tuple[0] is the index of the row, tuple[1] represents the column's index
     """
-    move_from: tuple[int, int]
-    move_to: tuple[int,int]
+    move_from: "tuple[int, int]"
+    move_to: "tuple[int,int]"
 
-def make_move(game_state: list[list[int]], move: Move):
+def make_move(game_state: "list[list[int]]", move: Move):
     from_row, from_col = move.move_from
     to_row, to_col = move.move_to
     players_mark = game_state[from_row][from_col]
     game_state[from_row][from_col] = 0
     game_state[to_row][to_col] = players_mark
 
-def reverse_move(game_state: list[list[int]], move: Move):
+def reverse_move(game_state: "list[list[int]]", move: Move):
     from_row, from_col = move.move_to
     to_row, to_col = move.move_from
     players_mark = game_state[from_row][from_col]

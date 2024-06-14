@@ -1,10 +1,10 @@
 import os
 
 # Check if the Test_cases directory exists
-test_cases_dir = os.path.join(os.curdir, 'Test_cases')
+test_cases_dir = os.path.join(os.curdir, 'test_cases')
 if not os.path.exists(test_cases_dir):
     # If Test_cases directory doesn't exist, use the parent directory
-    test_cases_dir = os.path.join(os.pardir, 'Test_cases')
+    test_cases_dir = os.path.join(os.pardir, 'test_cases')
 
 TEST_CASE_DIR = test_cases_dir
 BOARD_SIZE = 16
