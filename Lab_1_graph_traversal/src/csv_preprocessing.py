@@ -18,6 +18,7 @@ def copy_first_n_lines(n: int, filename: str, new_filename: str):
         for line in head:
             output_file.write(line)
 
+
 def parse_str_to_datetime_object(date_time: str):
     day = 1
     hour = int(date_time[0:2])
@@ -27,7 +28,8 @@ def parse_str_to_datetime_object(date_time: str):
     date = f'{day}.03.2023 {str(hour)}{date_time[2:]}'
     return datetime.strptime(date,'%d.%m.%Y %H:%M:%S')
 
-def add_line_to_graph(graph: dict[str, Node], line, date_time_dep, date_time_arr, start_stop_lat, start_stop_lon, end_stop_lat, end_stop_lon):
+
+def add_line_to_graph(graph: "dict[str, Node]", line, date_time_dep, date_time_arr, start_stop_lat, start_stop_lon, end_stop_lat, end_stop_lon):
     edge = Edge(line['line'], date_time_dep, date_time_arr)
     start_stop_name = line['start_stop']
     end_stop_name = line['end_stop']
@@ -37,12 +39,14 @@ def add_line_to_graph(graph: dict[str, Node], line, date_time_dep, date_time_arr
         graph[end_stop_name] = Node(end_stop_name, end_stop_lat, end_stop_lon)
     graph[start_stop_name].add_connection(line['end_stop'], edge)
 
+
 def count_connection_dist_time(start_lat, end_lat, start_lon, end_lon, date_time_dep: datetime, date_time_arr: datetime):
     dist = sqrt((end_lat - start_lat) ** 2 + (end_lon - start_lon) ** 2)
     time = ((date_time_arr - date_time_dep).seconds)/60
     return dist, time
 
-def threaded_csv_loading(graph, filename, event, total_time_dist: dict[str, float]):
+
+def threaded_csv_loading(graph, filename, event, total_time_dist: "dict[str, float]"):
     # dirname = os.path.dirname(__file__)
     # path_to_file = os.path.join(dirname, filename)
     dirname = os.path.pardir

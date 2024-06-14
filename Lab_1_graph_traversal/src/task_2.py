@@ -1,13 +1,8 @@
-import os
-import csv
 import threading
-import time
-import datetime
 from task_2_solver import Tabu
-from classes import Edge
 from csv_preprocessing import load_csv
 import config
-from user_communication import input_parameters, input_stops_time, input_start_stop_dep_time, input_middle_stops, input_criteria
+from user_communication import input_start_stop_dep_time, input_middle_stops, input_criteria
 
 def run():
     graph = {}

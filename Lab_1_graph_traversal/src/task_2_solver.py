@@ -4,7 +4,7 @@ from math import sqrt, ceil
 import config
 
 class Tabu:
-    def evaluate_solution(graph, stops: list[str], criteria: str, dep_time: datetime, average_speed: float):
+    def evaluate_solution(graph, stops: "list[str]", criteria: str, dep_time: datetime, average_speed: float):
         prev_paths = {}
         dist_paths = {}
         current_time = dep_time
@@ -30,7 +30,7 @@ class Tabu:
         return line_changes, prev_paths, dist_paths
     
 
-    def generate_neighbourhood(solution: list[str]):
+    def generate_neighbourhood(solution: "list[str]"):
         neighbourhood = set()
         mid_index = ceil(len(solution) / 2)
         lower_half = solution[:mid_index]
@@ -43,15 +43,16 @@ class Tabu:
             # similar_solution[len(similar_solution) - 2 - j] = lower_half[i]
             neighbourhood.add(tuple(similar_solution))
         return neighbourhood
+
     
-    def shuffle_solution(solution: list[str]):
+    def shuffle_solution(solution: "list[str]"):
         temp = solution[1]
         for i in range(2, len(solution) - 1):
             solution[i - 1] = solution[i]
         solution[-2] = temp
 
 
-    def generate_initial_solution(graph, source: str, middle_stops: list[str]):
+    def generate_initial_solution(graph, source: str, middle_stops: "list[str]"):
         def calculate_distance(stop_name):
             start_lat = graph[source].latitude
             start_lon = graph[source].longitude
@@ -65,8 +66,9 @@ class Tabu:
         upper_half = sorted_middle_stops[mid_index:]
         lower_half.reverse()
         return [source] + lower_half + upper_half + [source]
+
     
-    def solve(graph, source: str, middle_stops: list[str], criteria: str, dep_time: datetime, average_speed: float):
+    def solve(graph, source: str, middle_stops: "list[str]", criteria: str, dep_time: datetime, average_speed: float):
         current_solution = Tabu.generate_initial_solution(graph, source, middle_stops)
         current_solution_eval, current_prev_paths, current_dist_paths = Tabu.evaluate_solution(graph, current_solution, criteria, dep_time, average_speed)
         best_solution = current_solution

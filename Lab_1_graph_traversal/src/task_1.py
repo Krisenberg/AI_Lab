@@ -1,6 +1,5 @@
 import threading
 from task_1_solver import Dijkstra, Astar
-from classes import Edge
 from csv_preprocessing import load_csv
 import config
 from user_communication import input_parameters, input_stops_time

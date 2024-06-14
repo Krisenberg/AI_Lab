@@ -5,7 +5,7 @@ import time
 import config
 from user_communication import print_solve_stats
 
-def find_best_connection(graph: dict[str, Node], vertex_start, vertex_end, time, prev_line, criteria):
+def find_best_connection(graph: "dict[str, Node]", vertex_start, vertex_end, time, prev_line, criteria):
     connections = graph[vertex_start].get_connections(vertex_end)
     best_connection = connections[0]
     min_weight = config.MAX_DATE
@@ -31,6 +31,7 @@ def find_best_connection(graph: dict[str, Node], vertex_start, vertex_end, time,
         return None
     return best_connection
 
+
 class Dijkstra:
     def find_vertex_min_dist(vertex_set: set, dist: list, criteria: str):
         vertex = next(iter(vertex_set))
@@ -42,7 +43,8 @@ class Dijkstra:
                 vertex = v
         return vertex
 
-    def dijkstra(graph: dict[str, Node], source, target, criteria, time):
+
+    def dijkstra(graph: "dict[str, Node]", source, target, criteria, time):
         prev: dict[str, PrevNode] = {}
         dist: dict[str, list[datetime, int]] = {}
         q = set()
@@ -82,6 +84,7 @@ class Dijkstra:
                             prev_node = PrevNode(u, alt_conn.line, alt_conn.departure_time)
                             prev[v] = prev_node
         return prev, dist, number_of_processed_nodes, number_of_processed_connections
+
     
     def solve(graph, source, target, cirteria, dep_time):
         timestamp_start = time.time()
@@ -118,8 +121,9 @@ class Astar:
                 min_dist = dist[v][criteria_index]
                 vertex = v
         return vertex
+
     
-    def heuristic_time(graph: dict[str, Node], node: str, target: str, average_speed: float):
+    def heuristic_time(graph: "dict[str, Node]", node: str, target: str, average_speed: float):
         if node == target:
             return timedelta(minutes=0)
         start_lat = graph[node].latitude
@@ -128,8 +132,9 @@ class Astar:
         end_lon = graph[target].longitude
         dist = sqrt((end_lat - start_lat) ** 2 + (end_lon - start_lon) ** 2)
         return timedelta(minutes=(dist * average_speed * config.TIME_HEURISTIC_AVG_FACTOR))
-    
-    def cosinus_between_two_vectors(graph: dict[str, Node], current: str, next: str, target: str):
+
+
+    def cosinus_between_two_vectors(graph: "dict[str, Node]", current: str, next: str, target: str):
         x_current, y_current = graph[current].latitude, graph[current].longitude
         x_next, y_next = graph[next].latitude, graph[next].longitude
         x_target, y_target = graph[target].latitude, graph[target].longitude
@@ -137,15 +142,17 @@ class Astar:
         current_target = sqrt((x_target - x_current) ** 2 + (y_target - y_current) ** 2)
         next_target = sqrt((x_target - x_next) ** 2 + (y_target - y_next) ** 2)
         return ((next_target ** 2 - current_next ** 2 - current_target ** 2)) / (-2.0 * current_next * current_target)
+    
 
-    def heuristic_line_change(graph: dict[str, Node], was_change: bool, current: str, next: str, target: str):
+    def heuristic_line_change(graph: "dict[str, Node]", was_change: bool, current: str, next: str, target: str):
         cosinus = Astar.cosinus_between_two_vectors(graph, current, next, target)
         if was_change and cosinus < 0.5:
             scaled_cos = cosinus + 1.0
             return (1.5 - scaled_cos)
         return 0
 
-    def astar_dijkstra(graph: dict[str, Node], source, target, criteria, time, average_speed):
+
+    def astar_dijkstra(graph: "dict[str, Node]", source, target, criteria, time, average_speed):
         prev: dict[str, PrevNode] = {}
         dist: dict[str, list[datetime, datetime, int, int]] = {}
         q = set()
