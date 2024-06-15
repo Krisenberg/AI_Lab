@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "lab5-neural-networks"
+version = "1"
+description = "Lab 5 - neural networks project"
+authors = ["Krzysztof Glowacz <266545@student.pwr.edu.pl>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fasttext-wheel = "^0.9.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

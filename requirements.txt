@@ -2,3 +2,4 @@ scikit-learn==1.5.0
 ydata-profiling
 ipykernel==6.29.4
 setuptools
+sentence_transformers
