@@ -12,3 +12,7 @@ instructions/
 
 # HTML files
 *.html
+
+# Lab 5 - models
+*.gz
+*.bin
