@@ -5,3 +5,6 @@ setuptools
 sentence_transformers
 beautifulsoup4==4.12.3
 poetry
+numpy==1.26.4
+ipywidgets
+xlrd>=2.0.1
