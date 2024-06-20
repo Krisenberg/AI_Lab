@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "lab5-neural-networks"
+name = "AI-lab"
 version = "1"
-description = "Lab 5 - neural networks project"
+description = "AI laboratory class project"
 authors = ["Krzysztof Glowacz <266545@student.pwr.edu.pl>"]
 package-mode = false
 

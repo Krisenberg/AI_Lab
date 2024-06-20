@@ -3,3 +3,5 @@ ydata-profiling
 ipykernel==6.29.4
 setuptools
 sentence_transformers
+beautifulsoup4==4.12.3
+poetry

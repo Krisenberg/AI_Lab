@@ -16,3 +16,6 @@ instructions/
 # Lab 5 - models
 *.gz
 *.bin
+
+# Lab 5 - data
+Lab_5_neural_network/data/
